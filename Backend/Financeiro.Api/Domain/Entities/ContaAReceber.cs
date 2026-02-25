@@ -1,6 +1,6 @@
 ﻿namespace Financeiro.Api.Domain.Entities;
 
-public class Venda : DocumentoFinanceiro
+public class ContaAReceber : DocumentoFinanceiro
 {
     //FK para Cliente
     public int ClienteId { get; set; }
