@@ -9,6 +9,6 @@ public class Cliente
     public string? Endereco { get; set; }
 
     // propriedades de navegação
-    public ICollection<Venda> Vendas { get; set; } = new List<Venda>();
+    public ICollection<ContaAReceber> ContasAReceber { get; set; } = new List<ContaAReceber>();
 
 }
