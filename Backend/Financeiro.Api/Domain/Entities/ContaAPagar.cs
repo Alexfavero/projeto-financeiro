@@ -6,7 +6,6 @@ namespace Financeiro.Api.Domain.Entities
 {
     public class ContaAPagar : DocumentoFinanceiro
     {
-        [Key]
         public int? FornecedorId { get; set; }
 
         [ForeignKey("FornecedorId")]

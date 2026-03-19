@@ -13,7 +13,6 @@ namespace Financeiro.Api.Context
         public DbSet<ContaAReceber> ContasAReceber { get; set; }
         public DbSet<ContaAPagar> ContasAPagar { get; set; }
         public DbSet<Parcela> Parcelas { get; set; }
-
         public DbSet<Fornecedor> Fornecedores { get; set; }
 
     }
