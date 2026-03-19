@@ -14,5 +14,7 @@ namespace Financeiro.Api.Context
         public DbSet<ContaAPagar> ContasAPagar { get; set; }
         public DbSet<Parcela> Parcelas { get; set; }
 
+        public DbSet<Fornecedor> Fornecedores { get; set; }
+
     }
 }
