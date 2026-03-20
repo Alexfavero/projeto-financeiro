@@ -51,10 +51,10 @@ namespace Financeiro.Api.Migrations
             // 4.INSERIR PARCELAS(Garantindo que os IDs existam)
             // Status: 1:Pendente, 2:Pago, 3:Atrasado
             migrationBuilder.Sql(@"INSERT INTO Parcelas (Valor, DataVencimento, Status, DocumentoFinanceiroId) VALUES 
-            (5000.00, '2026-04-10', 1, 1), -- Referente ao primeiro 'ContaAPagar'
-            (850.00, '2026-03-25', 2, 2),  -- Referente ao segundo 'ContaAPagar'
-            (2500.00, '2026-04-15', 1, 6), -- Referente ao primeiro 'ContaAReceber' (ID 6 costuma ser o primeiro após os 5 de pagar)
-            (1200.00, '2026-04-20', 1, 7); -- Referente ao segundo 'ContaAReceber'");
+                (5000.00, '2026-04-10', 1, 1), -- Referente ao primeiro 'ContaAPagar'
+                (850.00, '2026-03-25', 2, 2),  -- Referente ao segundo 'ContaAPagar'
+                (2500.00, '2026-04-15', 1, 6), -- Referente ao primeiro 'ContaAReceber' (ID 6 costuma ser o primeiro após os 5 de pagar)
+                (1200.00, '2026-04-20', 1, 7); -- Referente ao segundo 'ContaAReceber'");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
