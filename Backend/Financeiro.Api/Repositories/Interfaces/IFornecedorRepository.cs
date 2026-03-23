@@ -4,5 +4,6 @@ namespace Financeiro.Api.Repositories.Interfaces
 {
     public interface IFornecedorRepository : IRepository<Fornecedor>
     {
+        Task<Fornecedor?> GetByCnpjAsync(string cnpj);
     }
 }

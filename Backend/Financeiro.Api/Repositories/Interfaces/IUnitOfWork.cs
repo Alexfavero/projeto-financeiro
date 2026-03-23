@@ -9,6 +9,5 @@
         IParcelaRepository ParcelaRepository { get; }
 
         Task<bool> CommitAsync();
-
     }
 }
