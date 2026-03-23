@@ -1,6 +1,4 @@
-﻿using Financeiro.Api.Repositories.Interfaces;
-
-namespace Financeiro.Api.Domain.Entities
+﻿namespace Financeiro.Api.Repositories.Interfaces
 {
     public interface IUnityOfWork : IDisposable
     {
