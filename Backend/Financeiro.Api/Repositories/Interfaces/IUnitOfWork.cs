@@ -1,6 +1,6 @@
 ﻿namespace Financeiro.Api.Repositories.Interfaces
 {
-    public interface IUnityOfWork : IDisposable
+    public interface IUnitOfWork : IDisposable
     {
         IClienteRepository ClienteRepository { get; }
         IContaAPagarRepository ContaAPagarRepository { get; }

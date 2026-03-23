@@ -15,7 +15,17 @@ builder.Services.AddSwaggerGen();
 string mySqlConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(mySqlConnection, ServerVersion.AutoDetect(mySqlConnection)));
+//Registro UnitOfWork
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+//Registro repositórios específicos
+builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
+builder.Services.AddScoped<IContaAPagarRepository, ContaAPagarRepository>();
+builder.Services.AddScoped<IContaAReceberRepository, ContaAReceberRepository>();
+builder.Services.AddScoped<IFornecedorRepository, FornecedorRepository>();
+builder.Services.AddScoped<IParcelaRepository, ParcelaRepository>();
+
+//Registro repositorio genérico
 builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
 
 var app = builder.Build();

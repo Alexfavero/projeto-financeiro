@@ -7,6 +7,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="AutoMapper" Version="16.1.1" />
+		<PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.13">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -21,7 +23,6 @@
 
 	<ItemGroup>
 		<Folder Include="Controllers\" />
-		<Folder Include="Repositories\Implementations\" />
 	</ItemGroup>
 
 </Project>
