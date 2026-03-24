@@ -1,28 +1,28 @@
-﻿using Financeiro.Api.Domain.Enums;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Runtime.CompilerServices;
+using Financeiro.Api.Domain.Entities;
+using Financeiro.Api.Domain.Enums;
 
-namespace Financeiro.Api.Domain.Entities
+namespace Financeiro.Api.DTOs
 {
-    public class Parcela
+    public class ParcelaDTO
     {
-        [Key]
         public int ParcelaId { get; set; }
 
         [Required(ErrorMessage = "O valor é obrigatório")]
-        [Column(TypeName = "decimal(18,2)")]
         public decimal Valor { get; set; }
+
         [Required(ErrorMessage = "A data de vencimento é obrigatória")]
-        [Column(TypeName = "datetime")]
+
         public DateTime DataVencimento { get; set; }
-        [Column(TypeName = "datetime")]
+
+
         public DateTime? DataPagamento { get; set; }
+
         [Required(ErrorMessage = "O status de pagamento é obrigatório")]
         public StatusPagamento Status { get; set; } = StatusPagamento.Pendente;
 
         public int DocumentoFinanceiroId { get; set; }
-        [ForeignKey("DocumentoFinanceiroId")]
-        public virtual DocumentoFinanceiro DocumentoFinanceiro { get; set; } = null!;
     }
 }

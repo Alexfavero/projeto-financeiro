@@ -1,4 +1,5 @@
 using Financeiro.Api.Context;
+using Financeiro.Api.DTOs.Mappings;
 using Financeiro.Api.Repositories.Implementations;
 using Financeiro.Api.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,9 @@ builder.Services.AddScoped<IParcelaRepository, ParcelaRepository>();
 
 //Registro repositorio genérico
 builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
+
+//Automapper
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 var app = builder.Build();
 

@@ -1,15 +1,13 @@
-﻿using Financeiro.Api.Domain.Enums;
+﻿using Financeiro.Api.Domain.Entities;
+using Financeiro.Api.Domain.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Financeiro.Api.Domain.Entities
+namespace Financeiro.Api.DTOs
 {
-    public class ContaAPagar : DocumentoFinanceiro
+    public class ContaAPagarDTO : DocumentoFinanceiroDTO
     {
         public int? FornecedorId { get; set; }
-
-        [ForeignKey("FornecedorId")]
-        public Fornecedor? Fornecedor { get; set; }
 
         [StringLength(50)]
         public string? NumeroNota { get; set; }
@@ -17,7 +15,7 @@ namespace Financeiro.Api.Domain.Entities
         [StringLength(500)]
         public string? Descricao { get; set; }
 
-        [Required(ErrorMessage = "A categoria de gastos é obrigatória")]
+        [Required]
         public CategoriaGasto Categoria { get; set; }
     }
 }

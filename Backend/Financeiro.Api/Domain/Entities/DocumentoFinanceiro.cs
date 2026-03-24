@@ -7,9 +7,9 @@ namespace Financeiro.Api.Domain.Entities
     {
         [Key]
         public int DocumentoFinanceiroId { get; set; }
-        [Required]
+        [Required(ErrorMessage = "O valor total é obrigatório")]
         [Column(TypeName = "decimal(18,2)")]
         public decimal ValorTotal { get; set; }
-        public ICollection<Parcela> Parcelas { get; set; } = new List<Parcela>();
+        virtual public ICollection<Parcela> Parcelas { get; set; } = new List<Parcela>();
     }
 }
