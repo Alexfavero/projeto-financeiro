@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Financeiro.Api.Domain.Entities;
 using Financeiro.Api.Repositories.Interfaces;
 using AutoMapper;
@@ -20,20 +19,17 @@ namespace Financeiro.Api.Controllers
             _mapper = mapper;
         }
 
-        // GET: api/Clientes
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ClienteDTO>>> GetAll()
         {
             var clientes = await _uof.ClienteRepository.GetAllAsync();
-            var clientesDto = _mapper.Map<IEnumerable<ClienteDTO>>(clientes);
-            return Ok(clientesDto);
+            return Ok(_mapper.Map<IEnumerable<ClienteDTO>>(clientes));
         }
 
-        // GET: api/Clientes/5
-        [HttpGet("{id}", Name = "GetById")]
+        [HttpGet("{id}", Name = "GetClienteById")]
         public async Task<ActionResult<ClienteDTO>> Get(int id)
         {
-            var cliente = await _uof.ClienteRepository.GetAsync(c => c.ClienteId == id);
+            var cliente = await _uof.ClienteRepository.GetClienteComContasAsync(id);
 
             if (cliente == null)
             {
@@ -43,13 +39,10 @@ namespace Financeiro.Api.Controllers
             return Ok(_mapper.Map<ClienteDTO>(cliente));
         }
 
-
-        // POST: api/Clientes
         [HttpPost]
         public async Task<ActionResult> Create(ClienteDTO clienteDto)
         {
             var cliente = _mapper.Map<Cliente>(clienteDto);
-
             _uof.ClienteRepository.Create(cliente);
             await _uof.CommitAsync();
 
@@ -57,25 +50,21 @@ namespace Financeiro.Api.Controllers
             return CreatedAtAction(nameof(Get), new { id = cliente.ClienteId }, clienteDtoCreated);
         }
 
-        // PUT: api/Clientes/5
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, ClienteDTO clienteDto)
         {
-
             if (id != clienteDto.ClienteId)
             {
                 return BadRequest("IDs não conferem");
             }
 
             var cliente = _mapper.Map<Cliente>(clienteDto);
-
             _uof.ClienteRepository.Update(cliente);
             await _uof.CommitAsync();
 
             return Ok(_mapper.Map<ClienteDTO>(cliente));
         }
 
-        // DELETE: api/Clientes/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
