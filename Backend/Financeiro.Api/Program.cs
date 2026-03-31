@@ -1,5 +1,6 @@
 using Financeiro.Api.Context;
 using Financeiro.Api.DTOs.Mappings;
+using Financeiro.Api.Extensions;
 using Financeiro.Api.Repositories.Implementations;
 using Financeiro.Api.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -39,6 +40,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.ConfigureExceptionHandler();
 }
 
 app.UseHttpsRedirection();
