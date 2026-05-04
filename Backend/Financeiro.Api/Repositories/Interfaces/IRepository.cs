@@ -9,5 +9,6 @@ namespace Financeiro.Api.Repositories.Interfaces
         T Create(T entity);
         T Update(T entity);
         T Delete(T entity);
+        Task<Financeiro.Api.Pagination.PagedList<T>> GetPagedAsync(int pageNumber, int pageSize);
     }
 }

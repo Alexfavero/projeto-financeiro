@@ -9,6 +9,11 @@ namespace Financeiro.Api.Repositories.Implementations
     {
         protected readonly AppDbContext _context;
 
+        public async Task<Financeiro.Api.Pagination.PagedList<T>> GetPagedAsync(int pageNumber, int pageSize)
+        {
+            var source = _context.Set<T>().AsNoTracking();
+            return await Financeiro.Api.Pagination.PagedList<T>.ToPagedListAsync(source, pageNumber, pageSize);
+        }
         public BaseRepository(AppDbContext context)
         {
             _context = context;

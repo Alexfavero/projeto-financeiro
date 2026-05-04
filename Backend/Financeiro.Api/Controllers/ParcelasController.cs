@@ -1,8 +1,10 @@
-﻿using AutoMapper;
+﻿using Microsoft.AspNetCore.Mvc;
 using Financeiro.Api.Domain.Entities;
-using Financeiro.Api.DTOs;
 using Financeiro.Api.Repositories.Interfaces;
-using Microsoft.AspNetCore.Mvc;
+using Financeiro.Api.DTOs;
+using Financeiro.Api.Pagination;
+using AutoMapper;
+using System.Text.Json;
 
 namespace Financeiro.Api.Controllers
 {
@@ -41,6 +43,24 @@ namespace Financeiro.Api.Controllers
         {
             var parcelas = await _uof.ParcelaRepository.GetPorPeriodoAsync(inicio, fim);
             return Ok(_mapper.Map<IEnumerable<ParcelaDTO>>(parcelas));
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<ParcelaDTO>>> GetPaged([FromQuery] Financeiro.Api.Pagination.ParcelaParameters parameters)
+        {
+            var paged = await _uof.ParcelaRepository.GetPagedAsync(parameters.PageNumber, parameters.PageSize);
+            var paginationMetadata = new
+            {
+                currentPage = paged.CurrentPage,
+                totalPages = paged.TotalPages,
+                pageSize = paged.PageSize,
+                totalCount = paged.TotalCount,
+                hasPrevious = paged.HasPrevious,
+                hasNext = paged.HasNext
+            };
+            Response.Headers.Append("X-Pagination", JsonSerializer.Serialize(paginationMetadata));
+            var result = _mapper.Map<IEnumerable<ParcelaDTO>>(paged);
+            return Ok(result);
         }
 
         // GET: api/parcelas/5
