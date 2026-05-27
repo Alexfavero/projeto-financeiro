@@ -80,22 +80,33 @@ namespace Financeiro.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, FornecedorDTO fornecedorDTO)
         {
+            // validação de IDs (padronizada)
             if (id != fornecedorDTO.FornecedorId)
             {
                 return BadRequest("IDs não conferem");
             }
 
-            var fornecedor = _mapper.Map<Fornecedor>(fornecedorDTO);
-            _uof.FornecedorRepository.Update(fornecedor);
+            // buscar entidade rastreada para update seguro
+            var existing = await _uof.FornecedorRepository.GetTrackedAsync(f => f.FornecedorId == id);
+            if (existing == null)
+            {
+                return NotFound("Fornecedor não encontrado");
+            }
+
+            // mapear valores do DTO sobre a entidade existente (preserva navegações)
+            _mapper.Map(fornecedorDTO, existing);
+
+            _uof.FornecedorRepository.Update(existing);
             await _uof.CommitAsync();
 
-            return Ok(_mapper.Map<FornecedorDTO>(fornecedor));
+            return Ok(_mapper.Map<FornecedorDTO>(existing));
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var fornecedor = await _uof.FornecedorRepository.GetAsync(c => c.FornecedorId == id);
+            // obter entidade rastreada antes de remover
+            var fornecedor = await _uof.FornecedorRepository.GetTrackedAsync(c => c.FornecedorId == id);
 
             if (fornecedor == null)
             {
@@ -105,7 +116,8 @@ namespace Financeiro.Api.Controllers
             _uof.FornecedorRepository.Delete(fornecedor);
             await _uof.CommitAsync();
 
-            return Ok(_mapper.Map<FornecedorDTO>(fornecedor));
+            // padronização: retorna 204 NoContent para deletes sem payload
+            return NoContent();
         }
     }
 }
