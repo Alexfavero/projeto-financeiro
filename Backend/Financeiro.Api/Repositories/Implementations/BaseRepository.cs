@@ -9,24 +9,34 @@ namespace Financeiro.Api.Repositories.Implementations
     {
         protected readonly AppDbContext _context;
 
-        public async Task<Financeiro.Api.Pagination.PagedList<T>> GetPagedAsync(int pageNumber, int pageSize)
-        {
-            var source = _context.Set<T>().AsNoTracking();
-            return await Financeiro.Api.Pagination.PagedList<T>.ToPagedListAsync(source, pageNumber, pageSize);
-        }
         public BaseRepository(AppDbContext context)
         {
             _context = context;
         }
 
+        // leitura paginada sem tracking (para GETs)
+        public async Task<Financeiro.Api.Pagination.PagedList<T>> GetPagedAsync(int pageNumber, int pageSize)
+        {
+            var source = _context.Set<T>().AsNoTracking();
+            return await Financeiro.Api.Pagination.PagedList<T>.ToPagedListAsync(source, pageNumber, pageSize);
+        }
+
+        // leitura sem tracking (melhor para endpoints GET)
         public async Task<IEnumerable<T>> GetAllAsync()
         {
-
             return await _context.Set<T>().AsNoTracking().ToListAsync();
         }
+
+        // leitura sem tracking (mantém o comportamento atual)
         public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate)
         {
             return await _context.Set<T>().AsNoTracking().FirstOrDefaultAsync(predicate);
+        }
+
+        // leitura com tracking: usada antes de Update/Delete para que o EF Core acompanhe a entidade
+        public async Task<T?> GetTrackedAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _context.Set<T>().FirstOrDefaultAsync(predicate);
         }
 
         public T Create(T entity)
@@ -34,6 +44,7 @@ namespace Financeiro.Api.Repositories.Implementations
             _context.Set<T>().Add(entity);
             return entity;
         }
+
         public T Update(T entity)
         {
             _context.Set<T>().Update(entity);
@@ -43,10 +54,7 @@ namespace Financeiro.Api.Repositories.Implementations
         public T Delete(T entity)
         {
             _context.Set<T>().Remove(entity);
-
             return entity;
         }
-
-
     }
 }

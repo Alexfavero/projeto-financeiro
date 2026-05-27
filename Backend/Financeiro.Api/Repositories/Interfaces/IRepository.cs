@@ -5,7 +5,10 @@ namespace Financeiro.Api.Repositories.Interfaces
     public interface IRepository<T> where T : class
     {
         Task<IEnumerable<T>> GetAllAsync();
+        // getter sem tracking (para leitura)
         Task<T?> GetAsync(Expression<Func<T, bool>> predicate);
+        // getter com tracking (para Update/Delete quando precisamos que o EF acompanhe a entidade)
+        Task<T?> GetTrackedAsync(Expression<Func<T, bool>> predicate);
         T Create(T entity);
         T Update(T entity);
         T Delete(T entity);

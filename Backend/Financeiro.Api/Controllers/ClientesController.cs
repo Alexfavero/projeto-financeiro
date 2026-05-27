@@ -67,22 +67,35 @@ namespace Financeiro.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, ClienteDTO clienteDto)
         {
+            // validação de IDs (padronizada com o resto do projeto)
             if (id != clienteDto.ClienteId)
             {
                 return BadRequest("IDs não conferem");
             }
 
-            var cliente = _mapper.Map<Cliente>(clienteDto);
-            _uof.ClienteRepository.Update(cliente);
+            // buscar entidade rastreada para update seguro (preserva navegações)
+            var existing = await _uof.ClienteRepository.GetTrackedAsync(c => c.ClienteId == id);
+            if (existing == null)
+            {
+                // comportamento padrão do projeto: retornar 404 se não existir
+                return NotFound("Cliente não encontrado");
+            }
+
+            // mapear os valores do DTO sobre a entidade existente para evitar sobrescrever navegações
+            _mapper.Map(clienteDto, existing);
+
+            _uof.ClienteRepository.Update(existing);
             await _uof.CommitAsync();
 
-            return Ok(_mapper.Map<ClienteDTO>(cliente));
+            // retornar o DTO atualizado (padronizado)
+            return Ok(_mapper.Map<ClienteDTO>(existing));
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var cliente = await _uof.ClienteRepository.GetAsync(c => c.ClienteId == id);
+            // obter entidade rastreada antes de remover
+            var cliente = await _uof.ClienteRepository.GetTrackedAsync(c => c.ClienteId == id);
 
             if (cliente == null)
             {
@@ -92,7 +105,8 @@ namespace Financeiro.Api.Controllers
             _uof.ClienteRepository.Delete(cliente);
             await _uof.CommitAsync();
 
-            return Ok(_mapper.Map<ClienteDTO>(cliente));
+            // padronização: retorna 204 NoContent para deletes sem payload
+            return NoContent();
         }
     }
 }
