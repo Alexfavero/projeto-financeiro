@@ -63,6 +63,10 @@ namespace Financeiro.Api.Controllers
         {
             var contaAReceber = _mapper.Map<ContaAReceber>(contaAReceberDTO);
 
+            // validação de FK: Cliente deve existir
+            var cliente = await _uof.ClienteRepository.GetAsync(c => c.ClienteId == contaAReceber.ClienteId);
+            if (cliente == null) return BadRequest("Cliente não encontrado");
+
             _uof.ContaAReceberRepository.Create(contaAReceber);
             await _uof.CommitAsync();
 
@@ -80,19 +84,26 @@ namespace Financeiro.Api.Controllers
                 return BadRequest("IDs não conferem");
             }
 
-            var contaAReceber = _mapper.Map<ContaAReceber>(contaAReceberDTO);
+            // obter entidade rastreada
+            var existing = await _uof.ContaAReceberRepository.GetTrackedAsync(c => c.DocumentoFinanceiroId == id);
+            if (existing == null) return NotFound("Conta a receber não encontrado");
 
-            _uof.ContaAReceberRepository.Update(contaAReceber);
+            // validação de FK
+            var cliente = await _uof.ClienteRepository.GetAsync(c => c.ClienteId == contaAReceberDTO.ClienteId);
+            if (cliente == null) return BadRequest("Cliente não encontrado");
+
+            _mapper.Map(contaAReceberDTO, existing);
+            _uof.ContaAReceberRepository.Update(existing);
             await _uof.CommitAsync();
 
-            return Ok(_mapper.Map<ContaAReceberDTO>(contaAReceber));
+            return Ok(_mapper.Map<ContaAReceberDTO>(existing));
         }
 
         // DELETE: api/contasAReceber/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var contaAReceber = await _uof.ContaAReceberRepository.GetAsync(c => c.DocumentoFinanceiroId == id);
+            var contaAReceber = await _uof.ContaAReceberRepository.GetTrackedAsync(c => c.DocumentoFinanceiroId == id);
 
             if (contaAReceber == null)
             {
@@ -102,8 +113,7 @@ namespace Financeiro.Api.Controllers
             _uof.ContaAReceberRepository.Delete(contaAReceber);
             await _uof.CommitAsync();
 
-            return Ok(_mapper.Map<ContaAReceberDTO>(contaAReceber));
+            return NoContent();
         }
     }
-
 }

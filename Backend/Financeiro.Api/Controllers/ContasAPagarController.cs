@@ -62,6 +62,13 @@ namespace Financeiro.Api.Controllers
         {
             var conta = _mapper.Map<ContaAPagar>(contaDTO);
 
+            // validação de FK: se informar FornecedorId, garantir existência
+            if (conta.FornecedorId.HasValue)
+            {
+                var fornecedor = await _uof.FornecedorRepository.GetAsync(f => f.FornecedorId == conta.FornecedorId.Value);
+                if (fornecedor == null) return BadRequest("Fornecedor não encontrado");
+            }
+
             _uof.ContaAPagarRepository.Create(conta);
             await _uof.CommitAsync();
 
@@ -74,23 +81,37 @@ namespace Financeiro.Api.Controllers
         {
             if (id != contaDTO.DocumentoFinanceiroId) return BadRequest("IDs não conferem");
 
-            var conta = _mapper.Map<ContaAPagar>(contaDTO);
-            _uof.ContaAPagarRepository.Update(conta);
+            // buscar entidade rastreada
+            var existing = await _uof.ContaAPagarRepository.GetTrackedAsync(c => c.DocumentoFinanceiroId == id);
+            if (existing == null) return NotFound("Conta a pagar não encontrada");
+
+            // validação de FK
+            if (contaDTO.FornecedorId.HasValue)
+            {
+                var fornecedor = await _uof.FornecedorRepository.GetAsync(f => f.FornecedorId == contaDTO.FornecedorId.Value);
+                if (fornecedor == null) return BadRequest("Fornecedor não encontrado");
+            }
+
+            // mapear valores do DTO sobre a entidade existente
+            _mapper.Map(contaDTO, existing);
+            _uof.ContaAPagarRepository.Update(existing);
             await _uof.CommitAsync();
 
-            return Ok(_mapper.Map<ContaAPagarDTO>(conta));
+            return Ok(_mapper.Map<ContaAPagarDTO>(existing));
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var conta = await _uof.ContaAPagarRepository.GetAsync(c => c.DocumentoFinanceiroId == id);
+            // obter entidade rastreada antes de remover
+            var conta = await _uof.ContaAPagarRepository.GetTrackedAsync(c => c.DocumentoFinanceiroId == id);
             if (conta == null) return NotFound("Conta a pagar não encontrada");
 
             _uof.ContaAPagarRepository.Delete(conta);
             await _uof.CommitAsync();
 
-            return Ok(_mapper.Map<ContaAPagarDTO>(conta));
+            // padronização: retorna 204 NoContent para deletes sem payload
+            return NoContent();
         }
     }
 }

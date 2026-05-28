@@ -39,7 +39,7 @@ namespace Financeiro.Api.Controllers
 
         // GET: api/parcelas/periodo?inicio=2026-03-01&fim=2026-03-31
         [HttpGet("periodo")]
-        public async Task<ActionResult<IEnumerable<ParcelaDTO>>> GetPorPeriodo(DateTime inicio, DateTime fim)
+        public async Task<ActionResult<IEnumerable<ParcelaDTO>>> GetPorPeriodo([FromQuery] DateTime inicio, [FromQuery] DateTime fim)
         {
             var parcelas = await _uof.ParcelaRepository.GetPorPeriodoAsync(inicio, fim);
             return Ok(_mapper.Map<IEnumerable<ParcelaDTO>>(parcelas));
@@ -79,24 +79,31 @@ namespace Financeiro.Api.Controllers
         {
             if (id != parcelaDTO.ParcelaId) return BadRequest("IDs não conferem");
 
-            var parcela = _mapper.Map<Parcela>(parcelaDTO);
-            _uof.ParcelaRepository.Update(parcela);
+            // obter entidade rastreada
+            var existing = await _uof.ParcelaRepository.GetTrackedAsync(p => p.ParcelaId == id);
+            if (existing == null) return NotFound("Parcela não encontrada");
+
+            // mapear valores do DTO sobre a entidade existente
+            _mapper.Map(parcelaDTO, existing);
+            _uof.ParcelaRepository.Update(existing);
             await _uof.CommitAsync();
 
-            return Ok(_mapper.Map<ParcelaDTO>(parcela));
+            return Ok(_mapper.Map<ParcelaDTO>(existing));
         }
 
         // DELETE: api/parcelas/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var parcela = await _uof.ParcelaRepository.GetAsync(p => p.ParcelaId == id);
+            // obter entidade rastreada antes de remover
+            var parcela = await _uof.ParcelaRepository.GetTrackedAsync(p => p.ParcelaId == id);
             if (parcela == null) return NotFound("Parcela não encontrada");
 
             _uof.ParcelaRepository.Delete(parcela);
             await _uof.CommitAsync();
 
-            return Ok("Parcela removida com sucesso");
+            // padronização: retorna 204 NoContent para deletes sem payload
+            return NoContent();
         }
     }
 }
