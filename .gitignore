@@ -11,3 +11,6 @@
 
 # Logs
 *.log
+# Configuracoes locais (contem SecretKey do JWT e connection string)
+Backend/Financeiro.Api/appsettings.json
+Backend/Financeiro.Api/appsettings.Development.json
