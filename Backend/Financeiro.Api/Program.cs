@@ -1,4 +1,5 @@
 using Financeiro.Api.Context;
+using Financeiro.Api.Domain.Entities;
 using Financeiro.Api.DTOs.Mappings;
 using Financeiro.Api.Extensions;
 using Financeiro.Api.Repositories.Implementations;
@@ -19,7 +20,7 @@ builder.Services.AddSwaggerGen();
 
 
 // identity
-builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<AppDbContext>()
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
 // authentication + jwt
