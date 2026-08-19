@@ -4,6 +4,8 @@ using Financeiro.Api.DTOs.Mappings;
 using Financeiro.Api.Extensions;
 using Financeiro.Api.Repositories.Implementations;
 using Financeiro.Api.Repositories.Interfaces;
+using Financeiro.Api.Services.Implementations;
+using Financeiro.Api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -65,6 +67,9 @@ builder.Services.AddScoped<IParcelaRepository, ParcelaRepository>();
 
 //Registro repositorio gen�rico
 builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
+
+//Registro do servi�o de token (JWT)
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 //Automapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
