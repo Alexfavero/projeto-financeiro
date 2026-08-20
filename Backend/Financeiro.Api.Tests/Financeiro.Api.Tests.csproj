@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+    <PackageReference Include="xunit" Version="2.8.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.0" />
+    <PackageReference Include="Moq" Version="4.20.70" />
+    <!-- Só pra viabilizar o teste de isolamento multiusuário (banco em memória,
+         exercitando o comportamento real do EF Core, sem precisar do MySQL) -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.13" />
+  </ItemGroup>
+
+  <!-- necessário pra usar tipos do ASP.NET Core (ex.: DefaultHttpContext) nos testes de
+       isolamento multiusuário; sem isso o projeto de testes não enxerga esses tipos -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Financeiro.Api\Financeiro.Api.csproj" />
+  </ItemGroup>
+
+</Project>
