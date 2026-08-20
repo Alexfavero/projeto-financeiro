@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 using Financeiro.Api.Services.Implementations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -42,9 +43,17 @@ namespace Financeiro.Api.Tests.Services
 
             var token = service.GenerateAccessToken(claims, config);
 
+            // O JwtSecurityTokenHandler remapeia certos ClaimTypes conhecidos pra nomes
+            // curtos dentro do JWT (ex.: ClaimTypes.Name vira "unique_name", NameIdentifier
+            // vira "nameid") via DefaultOutboundClaimTypeMap — por isso não dá pra procurar
+            // pelo ClaimTypes.Name original dentro do token já gerado, e sim pelo nome
+            // mapeado. Usar o próprio dicionário do handler evita depender de string mágica.
+            var nomeCurtoClaimName = JwtSecurityTokenHandler.DefaultOutboundClaimTypeMap[ClaimTypes.Name];
+            var nomeCurtoClaimNameIdentifier = JwtSecurityTokenHandler.DefaultOutboundClaimTypeMap[ClaimTypes.NameIdentifier];
+
             Assert.Equal("https://localhost", token.Issuer);
-            Assert.Contains(token.Claims, c => c.Type == ClaimTypes.Name && c.Value == "usuario.teste");
-            Assert.Contains(token.Claims, c => c.Type == ClaimTypes.NameIdentifier && c.Value == "id-123");
+            Assert.Contains(token.Claims, c => c.Type == nomeCurtoClaimName && c.Value == "usuario.teste");
+            Assert.Contains(token.Claims, c => c.Type == nomeCurtoClaimNameIdentifier && c.Value == "id-123");
         }
 
         [Fact]
@@ -75,12 +84,27 @@ namespace Financeiro.Api.Tests.Services
             // expirado (via refresh token) sem exigir novo login, desde que a assinatura
             // continue válida. Se ValidateLifetime virasse true aqui por engano, esse
             // teste falharia.
+            //
+            // Não dá pra gerar esse token chamando GenerateAccessToken com uma validade
+            // negativa: o SecurityTokenDescriptor exige Expires > NotBefore, e como o
+            // Service não define NotBefore, ele nasce como "agora" — então "Expires no
+            // passado" sempre falha já na criação do token (IDX12401), antes de chegar
+            // perto do que estamos testando aqui. Por isso o token expirado é montado na
+            // mão, com NotBefore e Expires os dois no passado (nessa ordem), simulando um
+            // token antigo que o cliente ainda guarda e está tentando renovar.
             var service = new TokenService();
-            var config = CriarConfiguracao(validadeEmMinutos: -10); // já nasce expirado
+            var config = CriarConfiguracao();
 
-            var claims = new List<Claim> { new(ClaimTypes.Name, "usuario.teste") };
-            var token = service.GenerateAccessToken(claims, config);
-            var tokenEscrito = new JwtSecurityTokenHandler().WriteToken(token);
+            var chaveDeAssinatura = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(ChaveSecretaPadrao));
+            var credenciais = new SigningCredentials(chaveDeAssinatura, SecurityAlgorithms.HmacSha256Signature);
+            var tokenExpirado = new JwtSecurityToken(
+                issuer: "https://localhost",
+                audience: "https://localhost",
+                claims: new[] { new Claim(ClaimTypes.Name, "usuario.teste") },
+                notBefore: DateTime.UtcNow.AddMinutes(-20),
+                expires: DateTime.UtcNow.AddMinutes(-10),
+                signingCredentials: credenciais);
+            var tokenEscrito = new JwtSecurityTokenHandler().WriteToken(tokenExpirado);
 
             var principal = service.GetPrincipalFromExpiredToken(tokenEscrito, config);
 
