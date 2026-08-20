@@ -34,7 +34,7 @@ namespace Financeiro.Api.Controllers
         {
             var userExists = await _userManager.FindByNameAsync(model.Username!);
             if (userExists != null)
-                return StatusCode(StatusCodes.Status500InternalServerError,
+                return Conflict(
                     new Response { Status = "Error", Message = "Usuário já existe!" });
 
             ApplicationUser user = new()
@@ -46,8 +46,11 @@ namespace Financeiro.Api.Controllers
 
             var result = await _userManager.CreateAsync(user, model.Password!);
             if (!result.Succeeded)
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    new Response { Status = "Error", Message = "Falha ao criar usuário!" });
+            {
+                var erros = string.Join(" ", result.Errors.Select(e => e.Description));
+                return BadRequest(
+                    new Response { Status = "Error", Message = $"Falha ao criar usuário! {erros}" });
+            }
 
             return Ok(new Response { Status = "Success", Message = "Usuário criado com sucesso!" });
         }

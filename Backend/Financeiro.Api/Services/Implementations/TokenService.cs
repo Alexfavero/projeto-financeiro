@@ -12,7 +12,7 @@ namespace Financeiro.Api.Services.Implementations
         public JwtSecurityToken GenerateAccessToken(IEnumerable<Claim> claims, IConfiguration _config)
         {
             var key = _config.GetSection("JWT").GetValue<string>("SecretKey") ??
-                throw new InvalidOperationException("Invalid secret Key");
+                throw new InvalidOperationException("Chave secreta do JWT não configurada");
 
             var privateKey = Encoding.UTF8.GetBytes(key);
 
@@ -50,7 +50,7 @@ namespace Financeiro.Api.Services.Implementations
 
         public ClaimsPrincipal GetPrincipalFromExpiredToken(string token, IConfiguration _config)
         {
-            var secretKey = _config["JWT:SecretKey"] ?? throw new InvalidOperationException("Invalid key");
+            var secretKey = _config["JWT:SecretKey"] ?? throw new InvalidOperationException("Chave secreta do JWT não configurada");
 
             var tokenValidationParameters = new TokenValidationParameters
             {
@@ -68,7 +68,7 @@ namespace Financeiro.Api.Services.Implementations
                 !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
                     StringComparison.InvariantCultureIgnoreCase))
             {
-                throw new SecurityTokenException("Invalid token");
+                throw new SecurityTokenException("Token inválido");
             }
 
             return principal;

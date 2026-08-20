@@ -94,7 +94,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFramework
 
 // authentication + jwt
 var secretKey = builder.Configuration["JWT:SecretKey"]
-    ?? throw new ArgumentException("Invalid secret key!!");
+    ?? throw new ArgumentException("Chave secreta do JWT não configurada!");
 
 builder.Services.AddAuthorization();
 builder.Services.AddAuthentication(options =>
@@ -125,14 +125,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 //Registro UnitOfWork
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-//Registro reposit�rios espec�ficos
+//Registro repositórios específicos
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
 builder.Services.AddScoped<IContaAPagarRepository, ContaAPagarRepository>();
 builder.Services.AddScoped<IContaAReceberRepository, ContaAReceberRepository>();
 builder.Services.AddScoped<IFornecedorRepository, FornecedorRepository>();
 builder.Services.AddScoped<IParcelaRepository, ParcelaRepository>();
 
-//Registro repositorio gen�rico
+//Registro repositório genérico
 builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
 
 //Registro do serviço de token (JWT)
