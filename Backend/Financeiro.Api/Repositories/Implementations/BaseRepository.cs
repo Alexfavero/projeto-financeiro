@@ -14,10 +14,13 @@ namespace Financeiro.Api.Repositories.Implementations
             _context = context;
         }
 
-        // leitura paginada sem tracking (para GETs)
-        public async Task<Financeiro.Api.Pagination.PagedList<T>> GetPagedAsync(int pageNumber, int pageSize)
+        // leitura paginada sem tracking (para GETs); filter opcional (ex.: Categoria, Status)
+        public async Task<Financeiro.Api.Pagination.PagedList<T>> GetPagedAsync(int pageNumber, int pageSize, Expression<Func<T, bool>>? filter = null)
         {
             var source = _context.Set<T>().AsNoTracking();
+            if (filter != null)
+                source = source.Where(filter);
+
             return await Financeiro.Api.Pagination.PagedList<T>.ToPagedListAsync(source, pageNumber, pageSize);
         }
 

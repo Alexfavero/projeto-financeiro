@@ -28,7 +28,13 @@ namespace Financeiro.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ContaAPagarDTO>>> GetPaged([FromQuery] Financeiro.Api.Pagination.ContaAPagarParameters parameters)
         {
-            var paged = await _uof.ContaAPagarRepository.GetPagedAsync(parameters.PageNumber, parameters.PageSize);
+            // filtro opcional por categoria; OrderBy não foi implementado (registrado como
+            // decisão consciente em status_tcc.md — sem ganho claro sem front-end consumindo)
+            System.Linq.Expressions.Expression<Func<ContaAPagar, bool>>? filtro = parameters.Categoria.HasValue
+                ? c => c.Categoria == parameters.Categoria.Value
+                : null;
+
+            var paged = await _uof.ContaAPagarRepository.GetPagedAsync(parameters.PageNumber, parameters.PageSize, filtro);
             var paginationMetadata = new
             {
                 currentPage = paged.CurrentPage,
