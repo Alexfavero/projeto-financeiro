@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using System.Text;
 using System.Threading.RateLimiting;
 
@@ -25,29 +25,23 @@ builder.Services.AddSwaggerGen(options =>
 {
     // botão "Authorize" no Swagger UI, para colar o Bearer token e testar
     // os endpoints protegidos com [Authorize] direto pela interface.
+    // A partir do Swashbuckle.AspNetCore v10 (Microsoft.OpenApi 2.x), os tipos
+    // saíram do namespace Microsoft.OpenApi.Models e foram pro Microsoft.OpenApi
+    // direto; o esquema certo agora é SecuritySchemeType.Http (não mais ApiKey +
+    // ParameterLocation.Header, que era o jeito da v6), e AddSecurityRequirement
+    // referencia o esquema por um delegate (document => ...) em vez do antigo
+    // OpenApiReference/ReferenceType.
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
         BearerFormat = "JWT",
-        In = ParameterLocation.Header,
         Description = "Informe apenas o token, sem o prefixo \"Bearer \" — o Swagger adiciona sozinho. Ex.: eyJhbGciOi..."
     });
 
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
     {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
     });
 });
 
