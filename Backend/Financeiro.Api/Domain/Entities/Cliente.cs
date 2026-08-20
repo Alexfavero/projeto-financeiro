@@ -1,8 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Financeiro.Api.Domain.Interfaces;
 
 namespace Financeiro.Api.Domain.Entities;
 
-public class Cliente
+public class Cliente : IPertenceAoUsuario
 {
     [Key]
     public int ClienteId { get; set; }
@@ -23,4 +24,7 @@ public class Cliente
     // propriedades de navegação
     public ICollection<ContaAReceber> ContasAReceber { get; set; } = new List<ContaAReceber>();
 
+    // Dono do registro (isolamento multiusuário). Preenchido automaticamente pelo
+    // AppDbContext a partir do usuário logado — nunca deve vir do corpo da requisição.
+    public string UsuarioId { get; set; } = null!;
 }

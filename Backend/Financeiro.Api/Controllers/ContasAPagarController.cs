@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Financeiro.Api.Domain.Entities;
 using Financeiro.Api.Domain.Enums;
 using Financeiro.Api.Repositories.Interfaces;
@@ -9,6 +10,7 @@ using System.Text.Json;
 
 namespace Financeiro.Api.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ContasAPagarController : ControllerBase

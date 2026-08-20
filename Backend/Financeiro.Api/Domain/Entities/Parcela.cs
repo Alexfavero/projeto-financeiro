@@ -1,11 +1,12 @@
 ﻿using Financeiro.Api.Domain.Enums;
+using Financeiro.Api.Domain.Interfaces;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.CompilerServices;
 
 namespace Financeiro.Api.Domain.Entities
 {
-    public class Parcela
+    public class Parcela : IPertenceAoUsuario
     {
         [Key]
         public int ParcelaId { get; set; }
@@ -24,5 +25,10 @@ namespace Financeiro.Api.Domain.Entities
         public int DocumentoFinanceiroId { get; set; }
         [ForeignKey("DocumentoFinanceiroId")]
         public virtual DocumentoFinanceiro DocumentoFinanceiro { get; set; } = null!;
+
+        // Dono do registro (isolamento multiusuário). Guardado também aqui, e não só no
+        // DocumentoFinanceiro pai, porque o ParcelaRepository tem consultas que acessam
+        // Parcelas diretamente (ex.: GetVencendoHojeAsync), sem passar pelo pai.
+        public string UsuarioId { get; set; } = null!;
     }
 }

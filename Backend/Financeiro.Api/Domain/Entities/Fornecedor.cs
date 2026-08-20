@@ -1,8 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Financeiro.Api.Domain.Interfaces;
 
 namespace Financeiro.Api.Domain.Entities
 {
-    public class Fornecedor
+    public class Fornecedor : IPertenceAoUsuario
     {
         [Key]
         public int FornecedorId { get; set; }
@@ -13,5 +14,8 @@ namespace Financeiro.Api.Domain.Entities
         [Required(ErrorMessage = "O CNPJ do fornecedor é obrigatório.")]
         public string CNPJ { get; set; } = null!;
 
+        // Dono do registro (isolamento multiusuário). Preenchido automaticamente pelo
+        // AppDbContext a partir do usuário logado — nunca deve vir do corpo da requisição.
+        public string UsuarioId { get; set; } = null!;
     }
 }
