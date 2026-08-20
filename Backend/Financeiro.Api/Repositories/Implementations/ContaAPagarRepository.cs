@@ -1,4 +1,4 @@
-﻿using Financeiro.Api.Context;
+using Financeiro.Api.Context;
 using Financeiro.Api.Domain.Entities;
 using Financeiro.Api.Domain.Enums;
 using Financeiro.Api.Repositories.Interfaces;
@@ -24,6 +24,22 @@ namespace Financeiro.Api.Repositories.Implementations
                 .Include(x => x.Fornecedor)
                 .Include(x => x.Parcelas)
                 .Where(x => x.Categoria == categoria)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<ContaAPagar>> GetTodasComParcelasAsync()
+        {
+            return await _context.ContasAPagar
+                .Include(x => x.Fornecedor)
+                .Include(x => x.Parcelas)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<ContaAPagar>> GetPorFornecedorAsync(int fornecedorId)
+        {
+            return await _context.ContasAPagar
+                .Include(x => x.Parcelas)
+                .Where(x => x.FornecedorId == fornecedorId)
                 .ToListAsync();
         }
     }

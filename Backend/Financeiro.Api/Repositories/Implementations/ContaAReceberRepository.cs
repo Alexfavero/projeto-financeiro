@@ -1,4 +1,4 @@
-﻿using Financeiro.Api.Context;
+using Financeiro.Api.Context;
 using Financeiro.Api.Domain.Entities;
 using Financeiro.Api.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +18,14 @@ namespace Financeiro.Api.Repositories.Implementations
                 .Include(c => c.Cliente)
                 .Include(c => c.Parcelas)
                 .FirstOrDefaultAsync(c => c.DocumentoFinanceiroId == id);
+        }
+
+        public async Task<IEnumerable<ContaAReceber>> GetTodasComParcelasAsync()
+        {
+            return await _context.ContasAReceber
+                .Include(c => c.Cliente)
+                .Include(c => c.Parcelas)
+                .ToListAsync();
         }
     }
 }

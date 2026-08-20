@@ -147,6 +147,9 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 //Registro do serviço de previsão de gastos e recebimentos
 builder.Services.AddScoped<IPrevisaoService, PrevisaoService>();
 
+//Registro do serviço de relatórios
+builder.Services.AddScoped<IRelatorioService, RelatorioService>();
+
 //Automapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
