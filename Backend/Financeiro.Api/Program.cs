@@ -141,8 +141,11 @@ builder.Services.AddScoped<IParcelaRepository, ParcelaRepository>();
 //Registro repositorio gen�rico
 builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
 
-//Registro do servi�o de token (JWT)
+//Registro do serviço de token (JWT)
 builder.Services.AddScoped<ITokenService, TokenService>();
+
+//Registro do serviço de previsão de gastos e recebimentos
+builder.Services.AddScoped<IPrevisaoService, PrevisaoService>();
 
 //Automapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
