@@ -95,8 +95,17 @@ namespace Financeiro.Api.Tests.Services
             var service = new TokenService();
             var config = CriarConfiguracao();
 
+            // TokenService.GetPrincipalFromExpiredToken confere o algoritmo do token
+            // comparando com SecurityAlgorithms.HmacSha256 ("HS256", o nome curto do JWA).
+            // Quando o GenerateAccessToken assina com HmacSha256Signature (a URI longa do
+            // XML-DSig), o JwtSecurityTokenHandler remapeia isso pra "HS256" no header por
+            // baixo dos panos (só quando passa por CreateJwtSecurityToken). Só que aqui
+            // estamos construindo o JwtSecurityToken na mão, sem passar por esse método —
+            // esse remapeamento automático não acontece, e o header ficaria com a URI longa,
+            // que o TokenService rejeitaria como "Token inválido". Por isso assinamos direto
+            // com o nome curto (HmacSha256), que é o que realmente vai pro header "alg".
             var chaveDeAssinatura = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(ChaveSecretaPadrao));
-            var credenciais = new SigningCredentials(chaveDeAssinatura, SecurityAlgorithms.HmacSha256Signature);
+            var credenciais = new SigningCredentials(chaveDeAssinatura, SecurityAlgorithms.HmacSha256);
             var tokenExpirado = new JwtSecurityToken(
                 issuer: "https://localhost",
                 audience: "https://localhost",
