@@ -7,15 +7,15 @@ import { FornecedoresPage } from "@/features/fornecedores/FornecedoresPage";
 import { ParcelasPage } from "@/features/parcelas/ParcelasPage";
 import { ContasAPagarPage } from "@/features/contas-a-pagar/ContasAPagarPage";
 import { ContasAReceberPage } from "@/features/contas-a-receber/ContasAReceberPage";
-import { ComingSoonPage } from "@/shared/components/ComingSoonPage";
+import { RelatoriosPage } from "@/features/relatorios/RelatoriosPage";
 import { ProtectedRoute } from "@/shared/auth/ProtectedRoute";
 
 /**
- * Parte 3 (em andamento): Clientes, Fornecedores, Parcelas (listar + dar
- * baixa + editar) e Contas a Pagar/Receber (listar + excluir) já têm tela
- * real. Só Relatórios continua no placeholder "em construção". Toda rota
- * interna fica atrás de `ProtectedRoute` (exige token salvo, senão manda
- * pro login).
+ * Todas as telas do roadmap já têm implementação real: Clientes,
+ * Fornecedores, Parcelas (listar + dar baixa + editar), Contas a
+ * Pagar/Receber (listar + excluir) e agora Relatórios (5 relatórios em
+ * abas, só leitura). Toda rota interna fica atrás de `ProtectedRoute`
+ * (exige token salvo, senão manda pro login).
  */
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
@@ -79,7 +79,7 @@ export const router = createBrowserRouter([
     path: "/relatorios",
     element: (
       <ProtectedRoute>
-        <ComingSoonPage title="Relatórios" />
+        <RelatoriosPage />
       </ProtectedRoute>
     ),
   },

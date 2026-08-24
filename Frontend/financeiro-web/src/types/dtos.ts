@@ -125,6 +125,81 @@ export interface PaginationMetadata {
   hasNext: boolean;
 }
 
+// ---- Relatórios ----
+// Conferidos contra `DTOs/RelatorioDTOs.cs` e `Services/Implementations/RelatorioService.cs`
+// reais (24/08) — os comentários abaixo citam a regra de negócio exata usada
+// no backend, pra quem for ler/mexer no mock saber o que reproduzir.
+
+// Usada tanto na Inadimplência (relatório 1) quanto em Contas a Pagar
+// Atrasadas (relatório 4) — mesma forma dos dois lados.
+export interface ParcelaAtrasadaDTO {
+  parcelaId: number;
+  documentoFinanceiroId: number;
+  valor: number;
+  dataVencimento: string;
+  diasAtraso: number;
+}
+
+// Relatório 1: parcelas de ContaAReceber com status != Pago e vencimento no
+// passado, agrupadas por cliente.
+export interface InadimplenciaClienteDTO {
+  clienteId: number;
+  nomeCliente: string;
+  valorTotalAtrasado: number;
+  parcelas: ParcelaAtrasadaDTO[];
+}
+
+// Relatório 4: espelho do 1, do lado de quem se deve. fornecedorId vem null
+// quando a ContaAPagar não tem fornecedor informado (campo opcional) — nesse
+// caso o backend agrupa como "Sem fornecedor" em vez de descartar a parcela.
+export interface ContaAtrasadaFornecedorDTO {
+  fornecedorId?: number | null;
+  nomeFornecedor: string;
+  valorTotalAtrasado: number;
+  parcelas: ParcelaAtrasadaDTO[];
+}
+
+// Relatório 2: soma das parcelas de ContaAPagar com status Pago e
+// DataPagamento dentro do período pedido, agrupada por CategoriaGasto.
+export interface GastoPorCategoriaDTO {
+  categoria: CategoriaGasto;
+  valorTotal: number;
+}
+
+export interface ExtratoParcelaDTO {
+  parcelaId: number;
+  valor: number;
+  dataVencimento: string;
+  dataPagamento?: string | null;
+  status: StatusPagamento;
+}
+
+export interface ExtratoDocumentoDTO {
+  documentoFinanceiroId: number;
+  valorTotal: number;
+  parcelas: ExtratoParcelaDTO[];
+}
+
+// Relatório 3: histórico completo (todos os documentos, pagos ou não) de um
+// Cliente ou Fornecedor. valorTotalMovimentado soma só as parcelas já pagas
+// ("quanto já movimentou de fato"), diferente do valorTotal de cada
+// documento (que é o valor total lançado, pago ou não).
+export interface ExtratoDTO {
+  entidadeId: number;
+  nomeEntidade: string;
+  valorTotalMovimentado: number;
+  documentos: ExtratoDocumentoDTO[];
+}
+
+// Relatório 5: ranking por valor já pago — mesmo DTO serve pro ranking de
+// clientes (top-clientes) e de fornecedores (top-fornecedores), endpoints
+// diferentes no backend. Só entram entidades com valorTotalMovimentado > 0.
+export interface RankingDTO {
+  entidadeId: number;
+  nome: string;
+  valorTotalMovimentado: number;
+}
+
 // ---- Autenticação ----
 
 export interface LoginModel {

@@ -13,14 +13,22 @@ import {
   proximosParcelaIds,
 } from "./data";
 import type {
+  CategoriaGasto,
   ClienteDTO,
   ContaAPagarDTO,
   ContaAReceberDTO,
+  ContaAtrasadaFornecedorDTO,
+  ExtratoDTO,
+  ExtratoDocumentoDTO,
   FornecedorDTO,
+  GastoPorCategoriaDTO,
+  InadimplenciaClienteDTO,
   LoginModel,
   PaginationMetadata,
+  ParcelaAtrasadaDTO,
   ParcelaDTO,
   PrevisaoPeriodoDTO,
+  RankingDTO,
   RegisterModel,
   StatusPagamento,
   TokenModel,
@@ -67,6 +75,41 @@ function respostaPaginada<T>(itens: T[], pageNumber: number, pageSize: number) {
 
 const PAGO: StatusPagamento = 2;
 const PENDENTE: StatusPagamento = 1;
+
+// ---- Helpers dos Relatórios ----
+// Espelham exatamente a regra de `RelatorioService.cs` real (conferido
+// 24/08): "atrasada" é status != Pago com vencimento no passado (não só
+// Pendente — Atrasado também conta, diferente da simplificação já existente
+// no handler de `/Parcelas/atrasadas`, que é mais restrito de propósito).
+
+function diasAtraso(dataVencimentoIso: string): number {
+  const vencimento = new Date(dataVencimentoIso.slice(0, 10) + "T00:00:00");
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  return Math.max(0, Math.round((hoje.getTime() - vencimento.getTime()) / 86400000));
+}
+
+function estaAtrasada(p: ParcelaDTO): boolean {
+  return p.status !== PAGO && diasAtraso(p.dataVencimento) > 0;
+}
+
+function somaPago(parcelas: ParcelaDTO[]): number {
+  return parcelas.filter((p) => p.status === PAGO).reduce((soma, p) => soma + p.valor, 0);
+}
+
+function mapDocumentoExtrato(conta: ContaAPagarDTO | ContaAReceberDTO): ExtratoDocumentoDTO {
+  return {
+    documentoFinanceiroId: conta.documentoFinanceiroId,
+    valorTotal: conta.valorTotal,
+    parcelas: conta.parcelas.map((p) => ({
+      parcelaId: p.parcelaId,
+      valor: p.valor,
+      dataVencimento: p.dataVencimento,
+      dataPagamento: p.dataPagamento ?? null,
+      status: p.status,
+    })),
+  };
+}
 
 export const handlers = [
   // ---- Auth ----
@@ -387,5 +430,176 @@ export const handlers = [
 
     mockContasAReceber.splice(index, 1);
     return new HttpResponse(null, { status: 204 });
+  }),
+
+  // ---- Relatórios ----
+  // Os 7 endpoints reais de RelatoriosController.cs, todo o cálculo (agrupar,
+  // somar, filtrar) reproduzindo `RelatorioService.cs` sobre os mesmos
+  // arrays em memória usados pelas outras telas — uma parcela dada baixa em
+  // Parcelas, por exemplo, já aparece aqui sem nenhum handler adicional.
+
+  // Relatório 1: parcelas de Contas a Receber atrasadas, agrupadas por cliente.
+  http.get(`${API}/Relatorios/inadimplencia`, () => {
+    const porCliente = new Map<number, InadimplenciaClienteDTO>();
+
+    for (const conta of mockContasAReceber) {
+      for (const p of conta.parcelas) {
+        if (!estaAtrasada(p)) continue;
+        const cliente = mockClientes.find((c) => c.clienteId === conta.clienteId);
+        if (!cliente) continue;
+
+        const grupo = porCliente.get(cliente.clienteId) ?? {
+          clienteId: cliente.clienteId,
+          nomeCliente: cliente.nome,
+          valorTotalAtrasado: 0,
+          parcelas: [] as ParcelaAtrasadaDTO[],
+        };
+        grupo.valorTotalAtrasado += p.valor;
+        grupo.parcelas.push({
+          parcelaId: p.parcelaId,
+          documentoFinanceiroId: conta.documentoFinanceiroId,
+          valor: p.valor,
+          dataVencimento: p.dataVencimento,
+          diasAtraso: diasAtraso(p.dataVencimento),
+        });
+        porCliente.set(cliente.clienteId, grupo);
+      }
+    }
+
+    const resultado = [...porCliente.values()]
+      .map((g) => ({ ...g, parcelas: g.parcelas.sort((a, b) => b.diasAtraso - a.diasAtraso) }))
+      .sort((a, b) => b.valorTotalAtrasado - a.valorTotalAtrasado);
+
+    return HttpResponse.json(resultado);
+  }),
+
+  // Relatório 2: parcelas de Contas a Pagar já pagas dentro do período, agrupadas por categoria.
+  http.get(`${API}/Relatorios/gastos-por-categoria`, ({ request }) => {
+    const url = new URL(request.url);
+    const inicio = url.searchParams.get("inicio") ?? "";
+    const fim = url.searchParams.get("fim") ?? "";
+
+    const porCategoria = new Map<CategoriaGasto, number>();
+    for (const conta of mockContasAPagar) {
+      for (const p of conta.parcelas) {
+        if (p.status !== PAGO || !p.dataPagamento) continue;
+        if (!dentroDoIntervalo(p.dataPagamento, inicio, fim)) continue;
+        porCategoria.set(conta.categoria, (porCategoria.get(conta.categoria) ?? 0) + p.valor);
+      }
+    }
+
+    const resultado: GastoPorCategoriaDTO[] = [...porCategoria.entries()]
+      .map(([categoria, valorTotal]) => ({ categoria, valorTotal }))
+      .sort((a, b) => b.valorTotal - a.valorTotal);
+
+    return HttpResponse.json(resultado);
+  }),
+
+  // Relatório 3a: extrato completo de um cliente (todos os documentos, pagos ou não).
+  http.get(`${API}/Relatorios/extrato/cliente/:clienteId`, ({ params }) => {
+    const id = Number(params.clienteId);
+    const cliente = mockClientes.find((c) => c.clienteId === id);
+    if (!cliente) return HttpResponse.json("Cliente não encontrado", { status: 404 });
+
+    const contas = mockContasAReceber.filter((c) => c.clienteId === id);
+    const extrato: ExtratoDTO = {
+      entidadeId: cliente.clienteId,
+      nomeEntidade: cliente.nome,
+      valorTotalMovimentado: somaPago(contas.flatMap((c) => c.parcelas)),
+      documentos: contas.map(mapDocumentoExtrato),
+    };
+    return HttpResponse.json(extrato);
+  }),
+
+  // Relatório 3b: extrato completo de um fornecedor.
+  http.get(`${API}/Relatorios/extrato/fornecedor/:fornecedorId`, ({ params }) => {
+    const id = Number(params.fornecedorId);
+    const fornecedor = mockFornecedores.find((f) => f.fornecedorId === id);
+    if (!fornecedor) return HttpResponse.json("Fornecedor não encontrado", { status: 404 });
+
+    const contas = mockContasAPagar.filter((c) => c.fornecedorId === id);
+    const extrato: ExtratoDTO = {
+      entidadeId: fornecedor.fornecedorId,
+      nomeEntidade: fornecedor.nome,
+      valorTotalMovimentado: somaPago(contas.flatMap((c) => c.parcelas)),
+      documentos: contas.map(mapDocumentoExtrato),
+    };
+    return HttpResponse.json(extrato);
+  }),
+
+  // Relatório 4: espelho do 1, do lado de quem se deve — agrupado por
+  // fornecedor, com "Sem fornecedor" quando a conta não tem um informado.
+  http.get(`${API}/Relatorios/contas-a-pagar-atrasadas`, () => {
+    const porFornecedor = new Map<number | "sem-fornecedor", ContaAtrasadaFornecedorDTO>();
+
+    for (const conta of mockContasAPagar) {
+      for (const p of conta.parcelas) {
+        if (!estaAtrasada(p)) continue;
+        const fornecedor = mockFornecedores.find((f) => f.fornecedorId === conta.fornecedorId);
+        const chave = fornecedor ? fornecedor.fornecedorId : "sem-fornecedor";
+
+        const grupo = porFornecedor.get(chave) ?? {
+          fornecedorId: fornecedor?.fornecedorId ?? null,
+          nomeFornecedor: fornecedor?.nome ?? "Sem fornecedor",
+          valorTotalAtrasado: 0,
+          parcelas: [] as ParcelaAtrasadaDTO[],
+        };
+        grupo.valorTotalAtrasado += p.valor;
+        grupo.parcelas.push({
+          parcelaId: p.parcelaId,
+          documentoFinanceiroId: conta.documentoFinanceiroId,
+          valor: p.valor,
+          dataVencimento: p.dataVencimento,
+          diasAtraso: diasAtraso(p.dataVencimento),
+        });
+        porFornecedor.set(chave, grupo);
+      }
+    }
+
+    const resultado = [...porFornecedor.values()]
+      .map((g) => ({ ...g, parcelas: g.parcelas.sort((a, b) => b.diasAtraso - a.diasAtraso) }))
+      .sort((a, b) => b.valorTotalAtrasado - a.valorTotalAtrasado);
+
+    return HttpResponse.json(resultado);
+  }),
+
+  // Relatório 5a: ranking de clientes por valor já recebido — só entram os com valor > 0.
+  http.get(`${API}/Relatorios/top-clientes`, ({ request }) => {
+    const url = new URL(request.url);
+    const quantidade = Number(url.searchParams.get("quantidade") ?? "10");
+
+    const resultado: RankingDTO[] = mockClientes
+      .map((cliente) => ({
+        entidadeId: cliente.clienteId,
+        nome: cliente.nome,
+        valorTotalMovimentado: somaPago(
+          mockContasAReceber.filter((c) => c.clienteId === cliente.clienteId).flatMap((c) => c.parcelas),
+        ),
+      }))
+      .filter((r) => r.valorTotalMovimentado > 0)
+      .sort((a, b) => b.valorTotalMovimentado - a.valorTotalMovimentado)
+      .slice(0, quantidade);
+
+    return HttpResponse.json(resultado);
+  }),
+
+  // Relatório 5b: ranking de fornecedores por valor já pago.
+  http.get(`${API}/Relatorios/top-fornecedores`, ({ request }) => {
+    const url = new URL(request.url);
+    const quantidade = Number(url.searchParams.get("quantidade") ?? "10");
+
+    const resultado: RankingDTO[] = mockFornecedores
+      .map((fornecedor) => ({
+        entidadeId: fornecedor.fornecedorId,
+        nome: fornecedor.nome,
+        valorTotalMovimentado: somaPago(
+          mockContasAPagar.filter((c) => c.fornecedorId === fornecedor.fornecedorId).flatMap((c) => c.parcelas),
+        ),
+      }))
+      .filter((r) => r.valorTotalMovimentado > 0)
+      .sort((a, b) => b.valorTotalMovimentado - a.valorTotalMovimentado)
+      .slice(0, quantidade);
+
+    return HttpResponse.json(resultado);
   }),
 ];
