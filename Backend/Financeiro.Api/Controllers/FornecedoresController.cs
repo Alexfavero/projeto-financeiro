@@ -71,6 +71,17 @@ namespace Financeiro.Api.Controllers
         [HttpPost]
         public async Task<ActionResult> Create(FornecedorDTO fornecedorDTO)
         {
+            // CNPJ é a identidade real de um fornecedor — não pode haver dois
+            // cadastros com o mesmo (GetByCnpjAsync já existe e é filtrado pelo
+            // isolamento multiusuário, então só compara contra os fornecedores
+            // do próprio usuário logado).
+            var fornecedorExistente = await _uof.FornecedorRepository.GetByCnpjAsync(fornecedorDTO.CNPJ);
+            if (fornecedorExistente != null)
+            {
+                return Conflict(
+                    new Response { Status = "Error", Message = "Já existe um fornecedor cadastrado com este CNPJ." });
+            }
+
             var fornecedor = _mapper.Map<Fornecedor>(fornecedorDTO);
             _uof.FornecedorRepository.Create(fornecedor);
             await _uof.CommitAsync();
@@ -93,6 +104,16 @@ namespace Financeiro.Api.Controllers
             if (existing == null)
             {
                 return NotFound("Fornecedor não encontrado");
+            }
+
+            // mesma checagem de duplicidade do Create, mas ignorando o próprio
+            // registro (senão editar um fornecedor sem trocar o CNPJ acusaria
+            // conflito contra si mesmo).
+            var fornecedorComMesmoCnpj = await _uof.FornecedorRepository.GetByCnpjAsync(fornecedorDTO.CNPJ);
+            if (fornecedorComMesmoCnpj != null && fornecedorComMesmoCnpj.FornecedorId != id)
+            {
+                return Conflict(
+                    new Response { Status = "Error", Message = "Já existe um fornecedor cadastrado com este CNPJ." });
             }
 
             // mapear valores do DTO sobre a entidade existente (preserva navegações)

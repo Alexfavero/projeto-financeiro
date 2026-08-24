@@ -59,7 +59,11 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              // AllowAnyHeader() só libera o que o navegador pode ENVIAR; sem isso,
+              // o header de resposta X-Pagination (listagens paginadas) fica
+              // invisível pro JavaScript do front-end em requisição cross-origin.
+              .WithExposedHeaders("X-Pagination");
     });
 });
 

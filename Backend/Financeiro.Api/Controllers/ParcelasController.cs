@@ -50,13 +50,12 @@ namespace Financeiro.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ParcelaDTO>>> GetPaged([FromQuery] Financeiro.Api.Pagination.ParcelaParameters parameters)
         {
-            // filtro opcional por status; OrderBy não foi implementado (registrado como
-            // decisão consciente em status_tcc.md — sem ganho claro sem front-end consumindo)
-            System.Linq.Expressions.Expression<Func<Parcela, bool>>? filtro = parameters.Status.HasValue
-                ? p => p.Status == parameters.Status.Value
-                : null;
-
-            var paged = await _uof.ParcelaRepository.GetPagedAsync(parameters.PageNumber, parameters.PageSize, filtro);
+            // GetPagedComContraparteAsync (não o GetPagedAsync genérico) porque essa é a
+            // listagem que a tela de Parcelas usa — precisa vir com Tipo/NomeContraparte.
+            // Filtro por status já é parâmetro direto do método; OrderBy não foi
+            // implementado (decisão registrada em status_tcc.md — sem ganho claro sem
+            // front-end consumindo).
+            var paged = await _uof.ParcelaRepository.GetPagedComContraparteAsync(parameters.PageNumber, parameters.PageSize, parameters.Status);
             var paginationMetadata = new
             {
                 currentPage = paged.CurrentPage,

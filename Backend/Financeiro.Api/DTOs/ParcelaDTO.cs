@@ -24,5 +24,13 @@ namespace Financeiro.Api.DTOs
         public StatusPagamento Status { get; set; } = StatusPagamento.Pendente;
 
         public int DocumentoFinanceiroId { get; set; }
+
+        // Calculados a partir do DocumentoFinanceiro pai (TPH) — não têm coluna
+        // própria no banco. Só vêm preenchidos nas listagens que a tela de
+        // Parcelas usa (Atrasadas, Período e a listagem paginada), onde o
+        // repositório inclui a navegação necessária; nos demais endpoints
+        // (Get por id, resposta do PUT) vêm null.
+        public string? Tipo { get; set; } // "APagar" ou "AReceber"
+        public string? NomeContraparte { get; set; } // nome do Fornecedor (a pagar) ou Cliente (a receber)
     }
 }
