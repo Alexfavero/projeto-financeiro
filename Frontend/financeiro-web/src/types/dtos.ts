@@ -70,6 +70,11 @@ export interface ParcelaDTO {
   dataPagamento?: string | null;
   status: StatusPagamento;
   documentoFinanceiroId: number;
+  // Calculados no backend a partir do DocumentoFinanceiro pai (Fornecedor/Cliente) —
+  // só vêm preenchidos nas listagens que a tela de Parcelas usa (Atrasadas, Período,
+  // paginada); no Get por id e na resposta do PUT (dar baixa) vêm null.
+  tipo?: "APagar" | "AReceber" | null;
+  nomeContraparte?: string | null;
 }
 
 // Base comum a ContaAPagar/ContaAReceber (TPH no backend).
@@ -107,6 +112,17 @@ export interface PrevisaoPeriodoDTO {
   fim: string;
   previsto: ResumoDTO; // parcelas não pagas, por DataVencimento
   realizado: ResumoDTO; // parcelas já pagas, por DataPagamento
+}
+
+// Metadados de paginação devolvidos no header `X-Pagination` pelos endpoints
+// de listagem (Clientes, Fornecedores, ContasAPagar, ContasAReceber, Parcelas).
+export interface PaginationMetadata {
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+  totalCount: number;
+  hasPrevious: boolean;
+  hasNext: boolean;
 }
 
 // ---- Autenticação ----

@@ -44,6 +44,8 @@ export const mockFornecedores: FornecedorDTO[] = [
 
 let nextDocumentoId = 100;
 let nextParcelaId = 1000;
+let nextClienteId = 100;
+let nextFornecedorId = 100;
 
 function hojeMaisDias(dias: number): string {
   const d = new Date();
@@ -94,6 +96,30 @@ export function allParcelas(): ParcelaDTO[] {
   ];
 }
 
+// Imita o que o backend real faz no MappingProfile: descobre, a partir do
+// documentoFinanceiroId, se a parcela é de uma conta a pagar (e o nome do
+// fornecedor) ou a receber (e o nome do cliente). Usado pelos handlers das
+// listagens que a tela de Parcelas consome (Atrasadas, Período, paginada).
+export function enriquecerParcela(p: ParcelaDTO): ParcelaDTO {
+  const contaAPagar = mockContasAPagar.find((c) => c.documentoFinanceiroId === p.documentoFinanceiroId);
+  if (contaAPagar) {
+    const fornecedor = mockFornecedores.find((f) => f.fornecedorId === contaAPagar.fornecedorId);
+    return { ...p, tipo: "APagar", nomeContraparte: fornecedor?.nome ?? null };
+  }
+
+  const contaAReceber = mockContasAReceber.find((c) => c.documentoFinanceiroId === p.documentoFinanceiroId);
+  if (contaAReceber) {
+    const cliente = mockClientes.find((c) => c.clienteId === contaAReceber.clienteId);
+    return { ...p, tipo: "AReceber", nomeContraparte: cliente?.nome ?? null };
+  }
+
+  return { ...p, tipo: null, nomeContraparte: null };
+}
+
+export function allParcelasEnriquecidas(): ParcelaDTO[] {
+  return allParcelas().map(enriquecerParcela);
+}
+
 export function proximoDocumentoId(): number {
   return nextDocumentoId++;
 }
@@ -102,4 +128,12 @@ export function proximosParcelaIds(qtd: number): number[] {
   const ids = Array.from({ length: qtd }, (_, i) => nextParcelaId + i);
   nextParcelaId += qtd;
   return ids;
+}
+
+export function proximoClienteId(): number {
+  return nextClienteId++;
+}
+
+export function proximoFornecedorId(): number {
+  return nextFornecedorId++;
 }

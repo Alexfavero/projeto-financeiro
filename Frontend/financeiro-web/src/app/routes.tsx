@@ -2,15 +2,18 @@ import { createBrowserRouter } from "react-router-dom";
 import { LoginPage } from "@/features/auth/LoginPage";
 import { PainelPage } from "@/features/previsao/PainelPage";
 import { LancarContaPage } from "@/features/lancar-conta/LancarContaPage";
+import { ClientesPage } from "@/features/clientes/ClientesPage";
+import { FornecedoresPage } from "@/features/fornecedores/FornecedoresPage";
+import { ParcelasPage } from "@/features/parcelas/ParcelasPage";
 import { ComingSoonPage } from "@/shared/components/ComingSoonPage";
 import { ProtectedRoute } from "@/shared/auth/ProtectedRoute";
 
 /**
- * Parte 2: Painel e Lançar Conta já usam dado de verdade (via MSW/API) e
- * ficam atrás de `ProtectedRoute` (exige token salvo, senão manda pro
- * login). As demais entradas do menu (Contas a Pagar, Contas a Receber,
- * Parcelas, Clientes, Fornecedores, Relatórios) continuam no placeholder
- * "em construção" — entram na Parte 3 em diante, uma de cada vez.
+ * Parte 3 (em andamento): Clientes, Fornecedores e Parcelas (listar + dar
+ * baixa) já têm tela real. Contas a Pagar/Receber (listagem) e Relatórios
+ * continuam no placeholder "em construção" — entram nas próximas rodadas.
+ * Toda rota interna fica atrás de `ProtectedRoute` (exige token salvo,
+ * senão manda pro login).
  */
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
@@ -50,7 +53,7 @@ export const router = createBrowserRouter([
     path: "/parcelas",
     element: (
       <ProtectedRoute>
-        <ComingSoonPage title="Parcelas" />
+        <ParcelasPage />
       </ProtectedRoute>
     ),
   },
@@ -58,7 +61,7 @@ export const router = createBrowserRouter([
     path: "/clientes",
     element: (
       <ProtectedRoute>
-        <ComingSoonPage title="Clientes" />
+        <ClientesPage />
       </ProtectedRoute>
     ),
   },
@@ -66,7 +69,7 @@ export const router = createBrowserRouter([
     path: "/fornecedores",
     element: (
       <ProtectedRoute>
-        <ComingSoonPage title="Fornecedores" />
+        <FornecedoresPage />
       </ProtectedRoute>
     ),
   },
