@@ -51,10 +51,10 @@ export function PainelPage() {
         </div>
       )}
 
-      <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="mb-1.5 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card>
           <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
-            A Receber (previsto no mês)
+            A Receber (previsto — mês atual)
           </div>
           <div className="text-2xl font-bold text-good">
             {previsaoQuery.isLoading ? "…" : formatBRL(previsaoQuery.data?.previsto.totalAReceber ?? 0)}
@@ -62,7 +62,7 @@ export function PainelPage() {
         </Card>
         <Card>
           <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
-            A Pagar (previsto no mês)
+            A Pagar (previsto — mês atual)
           </div>
           <div className="text-2xl font-bold text-critical">
             {previsaoQuery.isLoading ? "…" : formatBRL(previsaoQuery.data?.previsto.totalAPagar ?? 0)}
@@ -70,13 +70,17 @@ export function PainelPage() {
         </Card>
         <Card>
           <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
-            Saldo Projetado do Mês
+            Saldo Projetado (mês atual)
           </div>
           <div className="text-2xl font-bold text-primary">
             {previsaoQuery.isLoading ? "…" : formatBRL(previsaoQuery.data?.previsto.saldo ?? 0)}
           </div>
         </Card>
       </div>
+      <p className="mb-5 text-xs text-ink-secondary">
+        Os três cards acima são sempre do mês atual, independente do que estiver selecionado no gráfico abaixo — use o
+        gráfico pra ver outros meses, anos ou o histórico completo.
+      </p>
 
       <div className="mb-5">
         <HistoricoChart />
