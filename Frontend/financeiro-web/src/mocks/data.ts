@@ -8,18 +8,12 @@ import {
   type ParcelaDTO,
 } from "@/types/dtos";
 
-// "Banco de dados" em memória pro MSW. Existe pq o MySQL de verdade tá
-// vazio (só schema, sem seed) e a ideia é dar pra usar o front inteiro sem
-// precisar da API rodando. Os arrays são recriados do zero a cada reload
-// (sem persistência) — é assim mesmo, não é bug.
-//
-// login de teste: usuário demo / senha demo1234
-//
-// 20 de cada (clientes, fornecedores, contas a pagar/receber), o suficiente
-// pra estourar a página 1 (tamanho 10) em todas as listagens e dar dado de
-// verdade nos relatórios. IDs do seed ficam sempre < 100 (documentos) e
-// < 1000 (parcelas) de propósito, pra não colidir com os IDs gerados em
-// runtime (proximoDocumentoId etc).
+// "banco" fake pro MSW, pra dar pra usar o front sem precisar da API rodando.
+// Reseta a cada reload, sem persistência — de propósito.
+// login de teste: demo / demo1234
+// 20 de cada (clientes, fornecedores, contas a pagar/receber) pra estourar a
+// paginação e ter dado nos relatórios. IDs do seed < 100/1000 pra não bater
+// com os gerados em runtime.
 
 export interface MockUser {
   username: string;

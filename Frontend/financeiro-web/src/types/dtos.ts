@@ -1,14 +1,10 @@
-// tipos espelhando os DTOs do backend (Financeiro.Api), conferidos campo a
-// campo contra o C# real em Backend/Financeiro.Api/DTOs/*.cs e
-// Domain/Enums/*.cs.
-//
-// duas coisas do backend que valem lembrar:
-// - ASP.NET Core usa camelCase por padrão no JSON (System.Text.Json), então
-//   "ClienteId" (C#) vira "clienteId" aqui.
-// - os enums (CategoriaGasto, StatusPagamento) não têm conversor pra string
-//   no Program.cs, então trafegam como número (Categoria = 1, não
-//   "Mercadoria"). por isso são tipados como number, com um mapa separado
-//   (CATEGORIA_GASTO_LABELS etc.) pra exibição.
+// tipos espelhando os DTOs do backend (Financeiro.Api) — conferidos campo a
+// campo contra o C# em Backend/Financeiro.Api/DTOs/*.cs e Domain/Enums/*.cs.
+// json vem em camelCase (System.Text.Json), então ClienteId vira clienteId.
+// enums (CategoriaGasto, StatusPagamento) não têm conversor pra string no
+// Program.cs, trafegam como número (Categoria = 1, não "Mercadoria") — por
+// isso number aqui, com um mapa separado (CATEGORIA_GASTO_LABELS etc.) só
+// pra exibição.
 
 // ---- Enums (valores numéricos, iguais ao C#) ----
 

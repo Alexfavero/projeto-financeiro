@@ -13,13 +13,9 @@ namespace Financeiro.Api.DTOs.Mappings
             CreateMap<DocumentoFinanceiro, DocumentoFinanceiroDTO>().ReverseMap();
             CreateMap<ContaAPagar, ContaAPagarDTO>().ReverseMap();
             CreateMap<Fornecedor, FornecedorDTO>().ReverseMap();
-            // Tipo/NomeContraparte não existem na entidade, são calculados aqui a partir
-            // do DocumentoFinanceiro pai (TPH). Se a navegação não foi incluída no
-            // repositório, DocumentoFinanceiro vem null e cai no ramo null abaixo.
-            //
-            // usa a sobrecarga de MapFrom com Func (não Expression<Func<...>>) de propósito:
-            // com Expression o `is Tipo variavel` não compila ("An expression tree may not
-            // contain an 'is' pattern-matching operator"); com Func é só um delegate normal.
+            // Tipo/NomeContraparte não existem na entidade, vêm do DocumentoFinanceiro pai (TPH) -
+            // fica null se a navegação não foi incluída no repositório.
+            // MapFrom com Func aqui, não Expression, pq `is Tipo variavel` não compila em expression tree.
             CreateMap<Parcela, ParcelaDTO>()
                 .ForMember(dest => dest.Tipo, opt => opt.MapFrom((src, dest, destMember, context) =>
                     src.DocumentoFinanceiro is ContaAPagar ? "APagar" :
