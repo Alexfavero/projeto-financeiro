@@ -5,15 +5,17 @@ import { LancarContaPage } from "@/features/lancar-conta/LancarContaPage";
 import { ClientesPage } from "@/features/clientes/ClientesPage";
 import { FornecedoresPage } from "@/features/fornecedores/FornecedoresPage";
 import { ParcelasPage } from "@/features/parcelas/ParcelasPage";
+import { ContasAPagarPage } from "@/features/contas-a-pagar/ContasAPagarPage";
+import { ContasAReceberPage } from "@/features/contas-a-receber/ContasAReceberPage";
 import { ComingSoonPage } from "@/shared/components/ComingSoonPage";
 import { ProtectedRoute } from "@/shared/auth/ProtectedRoute";
 
 /**
- * Parte 3 (em andamento): Clientes, Fornecedores e Parcelas (listar + dar
- * baixa) já têm tela real. Contas a Pagar/Receber (listagem) e Relatórios
- * continuam no placeholder "em construção" — entram nas próximas rodadas.
- * Toda rota interna fica atrás de `ProtectedRoute` (exige token salvo,
- * senão manda pro login).
+ * Parte 3 (em andamento): Clientes, Fornecedores, Parcelas (listar + dar
+ * baixa + editar) e Contas a Pagar/Receber (listar + excluir) já têm tela
+ * real. Só Relatórios continua no placeholder "em construção". Toda rota
+ * interna fica atrás de `ProtectedRoute` (exige token salvo, senão manda
+ * pro login).
  */
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
@@ -37,7 +39,7 @@ export const router = createBrowserRouter([
     path: "/contas-a-pagar",
     element: (
       <ProtectedRoute>
-        <ComingSoonPage title="Contas a Pagar" />
+        <ContasAPagarPage />
       </ProtectedRoute>
     ),
   },
@@ -45,7 +47,7 @@ export const router = createBrowserRouter([
     path: "/contas-a-receber",
     element: (
       <ProtectedRoute>
-        <ComingSoonPage title="Contas a Receber" />
+        <ContasAReceberPage />
       </ProtectedRoute>
     ),
   },

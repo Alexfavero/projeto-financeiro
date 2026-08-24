@@ -214,22 +214,6 @@ export const handlers = [
     return HttpResponse.json("Parcela não encontrada", { status: 404 });
   }),
 
-  // GET por id — usado pela modal de "editar parcela" pra saber o valorTotal
-  // e as parcelas irmãs (calcula o aviso de "a soma deixou de bater").
-  http.get(`${API}/ContasAPagar/:id`, ({ params }) => {
-    const id = Number(params.id);
-    const conta = mockContasAPagar.find((c) => c.documentoFinanceiroId === id);
-    if (!conta) return HttpResponse.json("Conta a pagar não encontrada", { status: 404 });
-    return HttpResponse.json(conta);
-  }),
-
-  http.get(`${API}/ContasAReceber/:id`, ({ params }) => {
-    const id = Number(params.id);
-    const conta = mockContasAReceber.find((c) => c.documentoFinanceiroId === id);
-    if (!conta) return HttpResponse.json("Conta a receber não encontrada", { status: 404 });
-    return HttpResponse.json(conta);
-  }),
-
   // ---- Clientes ----
 
   http.get(`${API}/Clientes`, ({ request }) => {
@@ -300,7 +284,7 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 });
   }),
 
-  // ---- Lançar Conta ----
+  // ---- Contas a Pagar ----
 
   http.post(`${API}/ContasAPagar`, async ({ request }) => {
     const body = (await request.json()) as ContaAPagarDTO;
@@ -321,6 +305,46 @@ export const handlers = [
     return HttpResponse.json(criada, { status: 201 });
   }),
 
+  // Tela de Contas a Pagar — listagem paginada, com filtro opcional por categoria.
+  http.get(`${API}/ContasAPagar`, ({ request }) => {
+    const url = new URL(request.url);
+    const pageNumber = Number(url.searchParams.get("pageNumber") ?? "1");
+    const pageSize = Number(url.searchParams.get("pageSize") ?? "10");
+    const categoriaParam = url.searchParams.get("categoria");
+
+    let itens = mockContasAPagar;
+    if (categoriaParam) {
+      itens = itens.filter((c) => c.categoria === Number(categoriaParam));
+    }
+
+    return respostaPaginada(itens, pageNumber, pageSize);
+  }),
+
+  // Usado também pela modal de "editar parcela" (getContaPorParcela), pra saber o
+  // valorTotal e as parcelas irmãs e calcular o aviso de "a soma deixou de bater".
+  http.get(`${API}/ContasAPagar/:id`, ({ params }) => {
+    const id = Number(params.id);
+    const conta = mockContasAPagar.find((c) => c.documentoFinanceiroId === id);
+    if (!conta) return HttpResponse.json("Conta a pagar não encontrada", { status: 404 });
+    return HttpResponse.json(conta);
+  }),
+
+  // Exclui a conta inteira — não uma parcela avulsa. Como as parcelas ficam
+  // aninhadas dentro da própria conta neste mock (mesma estrutura de
+  // mockContasAPagar/mockContasAReceber), remover a conta já remove as
+  // parcelas dela junto, imitando o ON DELETE CASCADE configurado no banco
+  // real entre Parcela e DocumentoFinanceiro.
+  http.delete(`${API}/ContasAPagar/:id`, ({ params }) => {
+    const id = Number(params.id);
+    const index = mockContasAPagar.findIndex((c) => c.documentoFinanceiroId === id);
+    if (index === -1) return HttpResponse.json("Conta a pagar não encontrada", { status: 404 });
+
+    mockContasAPagar.splice(index, 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  // ---- Contas a Receber ----
+
   http.post(`${API}/ContasAReceber`, async ({ request }) => {
     const body = (await request.json()) as ContaAReceberDTO;
 
@@ -338,5 +362,30 @@ export const handlers = [
     mockContasAReceber.push(criada);
 
     return HttpResponse.json(criada, { status: 201 });
+  }),
+
+  // Tela de Contas a Receber — listagem paginada (sem filtro de categoria, que
+  // é exclusivo de Contas a Pagar).
+  http.get(`${API}/ContasAReceber`, ({ request }) => {
+    const url = new URL(request.url);
+    const pageNumber = Number(url.searchParams.get("pageNumber") ?? "1");
+    const pageSize = Number(url.searchParams.get("pageSize") ?? "10");
+    return respostaPaginada(mockContasAReceber, pageNumber, pageSize);
+  }),
+
+  http.get(`${API}/ContasAReceber/:id`, ({ params }) => {
+    const id = Number(params.id);
+    const conta = mockContasAReceber.find((c) => c.documentoFinanceiroId === id);
+    if (!conta) return HttpResponse.json("Conta a receber não encontrada", { status: 404 });
+    return HttpResponse.json(conta);
+  }),
+
+  http.delete(`${API}/ContasAReceber/:id`, ({ params }) => {
+    const id = Number(params.id);
+    const index = mockContasAReceber.findIndex((c) => c.documentoFinanceiroId === id);
+    if (index === -1) return HttpResponse.json("Conta a receber não encontrada", { status: 404 });
+
+    mockContasAReceber.splice(index, 1);
+    return new HttpResponse(null, { status: 204 });
   }),
 ];
