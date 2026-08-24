@@ -129,7 +129,8 @@ export function ParcelasPage() {
         {!isLoading && !isError && itens.length === 0 && <p className="text-sm text-ink-secondary">{mensagemVazio}</p>}
 
         {itens.length > 0 && (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[560px] text-sm">
             <thead>
               <tr className="border-b border-border text-left text-[11.5px] uppercase tracking-wide text-ink-secondary">
                 <th className="pb-2">Tipo</th>
@@ -145,7 +146,7 @@ export function ParcelasPage() {
               {itens.map((parcela) => {
                 const tipoInfo = parcela.tipo ? TIPO_BADGE[parcela.tipo] : null;
                 return (
-                  <tr key={parcela.parcelaId} className="border-b border-[#eef0f2] last:border-0">
+                  <tr key={parcela.parcelaId} className="border-b border-border last:border-0">
                     <td className="py-2.5">{tipoInfo ? <Badge variant={tipoInfo.variant}>{tipoInfo.label}</Badge> : "—"}</td>
                     <td className="py-2.5">{parcela.nomeContraparte || "—"}</td>
                     <td className="py-2.5">{formatBRL(parcela.valor)}</td>
@@ -177,6 +178,7 @@ export function ParcelasPage() {
               })}
             </tbody>
           </table>
+          </div>
         )}
 
         {aba === "todas" && paginacao && paginacao.totalPages > 1 && (

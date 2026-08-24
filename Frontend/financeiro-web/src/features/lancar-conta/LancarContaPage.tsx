@@ -50,7 +50,7 @@ export function LancarContaPage() {
           <button
             type="button"
             className={`rounded-md px-4 py-2 text-sm font-semibold ${
-              tab === "pagar" ? "bg-white shadow-sm" : "text-ink-secondary"
+              tab === "pagar" ? "bg-surface shadow-sm" : "text-ink-secondary"
             }`}
             onClick={() => setTab("pagar")}
           >
@@ -59,7 +59,7 @@ export function LancarContaPage() {
           <button
             type="button"
             className={`rounded-md px-4 py-2 text-sm font-semibold ${
-              tab === "receber" ? "bg-white shadow-sm" : "text-ink-secondary"
+              tab === "receber" ? "bg-surface shadow-sm" : "text-ink-secondary"
             }`}
             onClick={() => setTab("receber")}
           >
@@ -112,7 +112,7 @@ function GeradorParcelasPanel({
         quantidade e o intervalo — o valor total é dividido automaticamente entre elas, e dá pra
         ajustar cada parcela antes de confirmar.
       </p>
-      <div className="mb-3.5 grid grid-cols-3 gap-3.5">
+      <div className="mb-3.5 grid grid-cols-1 gap-3.5 sm:grid-cols-3">
         <Input
           label="Nº de parcelas"
           type="number"
@@ -187,7 +187,8 @@ function ParcelasEditor({
         </button>
       </div>
 
-      <table className="w-full text-sm">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[560px] text-sm">
         <thead>
           <tr className="border-b border-border text-left text-[11.5px] uppercase tracking-wide text-ink-secondary">
             <th className="pb-2">Nº</th>
@@ -201,7 +202,7 @@ function ParcelasEditor({
             const valorLinha = valores?.[index]?.valor;
             const linhaComCasasDemais = valorLinha != null && !temNoMaximoDuasCasas(Number(valorLinha) || 0);
             return (
-            <tr key={field.id} className="border-b border-[#eef0f2] last:border-0">
+            <tr key={field.id} className="border-b border-border last:border-0">
               <td className="py-2 pr-2">{index + 1}</td>
               <td className="py-2 pr-2">
                 <input
@@ -240,6 +241,7 @@ function ParcelasEditor({
           })}
         </tbody>
       </table>
+      </div>
 
       {(errors?.parcelas?.message || errors?.parcelas?.root?.message) && (
         <p className="mt-2 text-xs text-critical">
@@ -339,7 +341,7 @@ function ContaAPagarForm() {
       )}
 
       <Card title="Dados da Conta">
-        <div className="mb-3.5 grid grid-cols-2 gap-3.5">
+        <div className="mb-3.5 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
           <Input
             label="Valor Total (R$)"
             type="number"
@@ -454,7 +456,7 @@ function ContaAReceberForm() {
       )}
 
       <Card title="Dados da Conta">
-        <div className="mb-3.5 grid grid-cols-2 gap-3.5">
+        <div className="mb-3.5 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
           <Input
             label="Valor Total (R$)"
             type="number"

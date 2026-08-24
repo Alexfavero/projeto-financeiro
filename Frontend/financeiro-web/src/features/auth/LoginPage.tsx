@@ -69,7 +69,7 @@ export function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#12233d] via-[#1c3a63] to-primary">
-      <div className="w-[400px] rounded-2xl bg-white p-9 shadow-2xl">
+      <div className="w-full max-w-[400px] rounded-2xl bg-surface p-6 shadow-2xl sm:p-9">
         <div className="mb-7 flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-primary font-bold text-white">
             $
@@ -80,7 +80,7 @@ export function LoginPage() {
         <div className="mb-5 flex rounded-lg bg-surface-alt p-1">
           <button
             className={`flex-1 rounded-md py-2 text-sm font-semibold ${
-              tab === "entrar" ? "bg-white shadow-sm" : "text-ink-secondary"
+              tab === "entrar" ? "bg-surface shadow-sm" : "text-ink-secondary"
             }`}
             onClick={() => setTab("entrar")}
             type="button"
@@ -89,7 +89,7 @@ export function LoginPage() {
           </button>
           <button
             className={`flex-1 rounded-md py-2 text-sm font-semibold ${
-              tab === "criar" ? "bg-white shadow-sm" : "text-ink-secondary"
+              tab === "criar" ? "bg-surface shadow-sm" : "text-ink-secondary"
             }`}
             onClick={() => setTab("criar")}
             type="button"

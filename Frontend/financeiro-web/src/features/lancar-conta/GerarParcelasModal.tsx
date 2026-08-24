@@ -62,7 +62,8 @@ export function GerarParcelasModal({
         antes de confirmar — ou só clicar em "Confirmar parcelas".
       </p>
 
-      <table className="w-full text-sm">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[560px] text-sm">
         <thead>
           <tr className="border-b border-border text-left text-[11.5px] uppercase tracking-wide text-ink-secondary">
             <th className="pb-2">Nº</th>
@@ -73,7 +74,7 @@ export function GerarParcelasModal({
         </thead>
         <tbody>
           {draft.map((p, index) => (
-            <tr key={index} className="border-b border-[#eef0f2] last:border-0">
+            <tr key={index} className="border-b border-border last:border-0">
               <td className="py-2 pr-2">{index + 1}</td>
               <td className="py-2 pr-2">
                 <input
@@ -112,6 +113,7 @@ export function GerarParcelasModal({
           ))}
         </tbody>
       </table>
+      </div>
 
       <div
         className={`mt-3 flex justify-between text-[13px] ${

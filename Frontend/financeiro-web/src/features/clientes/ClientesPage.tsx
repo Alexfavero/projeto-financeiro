@@ -62,7 +62,8 @@ export function ClientesPage() {
         )}
 
         {itens.length > 0 && (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[560px] text-sm">
             <thead>
               <tr className="border-b border-border text-left text-[11.5px] uppercase tracking-wide text-ink-secondary">
                 <th className="pb-2">Nome</th>
@@ -74,7 +75,7 @@ export function ClientesPage() {
             </thead>
             <tbody>
               {itens.map((cliente) => (
-                <tr key={cliente.clienteId} className="border-b border-[#eef0f2] last:border-0">
+                <tr key={cliente.clienteId} className="border-b border-border last:border-0">
                   <td className="py-2.5">{cliente.nome}</td>
                   <td className="py-2.5">{cliente.email || "—"}</td>
                   <td className="py-2.5">{cliente.telefone || "—"}</td>
@@ -99,6 +100,7 @@ export function ClientesPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
 
         {paginacao && paginacao.totalPages > 1 && (

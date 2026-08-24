@@ -2,8 +2,59 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Paleta de cores como variáveis CSS — "R G B" (sem "rgb()", sem vírgula),
+ * porque é o formato que o Tailwind espera pra suportar opacidade
+ * (`bg-critical/10` etc.) num valor de cor vindo de variável (ver
+ * `tailwind.config.js`, `rgb(var(--color-x) / <alpha-value>)`).
+ *
+ * O tema claro é o `:root` (padrão). O tema escuro só redefine essas mesmas
+ * variáveis dentro de `.dark` — nenhuma classe Tailwind usada nos
+ * componentes muda entre os dois, só o valor por trás. A classe `.dark` no
+ * `<html>` é controlada pelo `ThemeContext` (`shared/theme/ThemeContext.tsx`).
+ */
+:root {
+  --color-primary: 42 120 214;
+  --color-primary-dark: 24 79 149;
+
+  /* "surface" = fundo de card/elemento "levantado" (branco no claro).
+     "surface-alt" = fundo de página / preenchimento sutil (levemente mais
+     escuro que o card no claro, levemente mais escuro que o card no escuro
+     também — o card sempre "flutua" um pouco acima do fundo da página). */
+  --color-surface: 255 255 255;
+  --color-surface-alt: 244 246 248;
+
+  --color-border: 227 229 232;
+
+  --color-ink: 11 11 11;
+  --color-ink-secondary: 82 81 78;
+  --color-ink-muted: 139 138 133;
+
+  --color-good: 12 163 12;
+  --color-warning: 250 178 25;
+  --color-critical: 208 59 59;
+}
+
+.dark {
+  --color-primary: 74 148 235;
+  --color-primary-dark: 42 120 214;
+
+  --color-surface: 26 34 51;
+  --color-surface-alt: 15 20 31;
+
+  --color-border: 42 50 66;
+
+  --color-ink: 232 234 240;
+  --color-ink-secondary: 154 160 180;
+  --color-ink-muted: 122 130 148;
+
+  --color-good: 52 199 89;
+  --color-warning: 250 178 25;
+  --color-critical: 235 92 92;
+}
+
 body {
-  @apply bg-surface-alt text-ink antialiased;
+  @apply bg-surface-alt text-ink antialiased transition-colors duration-150;
   font-family:
     -apple-system,
     BlinkMacSystemFont,

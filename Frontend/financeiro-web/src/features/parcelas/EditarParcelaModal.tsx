@@ -91,7 +91,7 @@ export function EditarParcelaModal({
       />
 
       {diferenca != null && Math.abs(diferenca) > TOLERANCIA && (
-        <div className="mb-3.5 rounded-lg bg-warning/15 px-3 py-2 text-xs font-semibold text-[#a06400]">
+        <div className="mb-3.5 rounded-lg bg-warning/15 px-3 py-2 text-xs font-semibold text-[#a06400] dark:text-[#ffd166]">
           Atenção: com esse valor, a soma das parcelas fica{" "}
           {diferenca > 0 ? "acima" : "abaixo"} do valor total da conta em{" "}
           {formatBRL(Math.abs(diferenca))}. É permitido salvar mesmo assim — confira se é o

@@ -4,6 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sistema de Controle Financeiro</title>
+    <script>
+      // Aplica o tema salvo (ou a preferência do sistema, na primeira visita)
+      // antes do React montar — sem isso, a página sempre nasceria clara por
+      // uma fração de segundo mesmo com o tema escuro salvo, porque o
+      // ThemeProvider (src/shared/theme/ThemeContext.tsx) só roda depois.
+      (function () {
+        try {
+          var salvo = localStorage.getItem("financeiro-tema");
+          var escuro = salvo ? salvo === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+          if (escuro) document.documentElement.classList.add("dark");
+        } catch (e) {
+          // localStorage indisponível (modo privado, etc.) — segue no tema claro padrão.
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

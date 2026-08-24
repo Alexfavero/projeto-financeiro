@@ -7,6 +7,7 @@ import { Button } from "@/shared/components/Button";
 import { STATUS_PAGAMENTO_LABELS, type StatusPagamento } from "@/types/dtos";
 import { formatBRL, formatData, primeiroDiaMesISO, ultimoDiaMesISO, dataISOMaisDias, hojeISO } from "@/shared/utils/format";
 import { getParcelasPeriodo, getPrevisaoPeriodo } from "./api";
+import { HistoricoChart } from "./HistoricoChart";
 
 const inicioMes = primeiroDiaMesISO();
 const fimMes = ultimoDiaMesISO();
@@ -50,7 +51,7 @@ export function PainelPage() {
         </div>
       )}
 
-      <div className="mb-5 grid grid-cols-3 gap-4">
+      <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card>
           <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
             A Receber (previsto no mês)
@@ -77,7 +78,11 @@ export function PainelPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-[1.4fr_1fr] gap-4">
+      <div className="mb-5">
+        <HistoricoChart />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_1fr]">
         <Card title="Parcelas vencendo (próximos 14 dias)">
           {parcelasQuery.isLoading && <p className="text-sm text-ink-secondary">Carregando…</p>}
           {parcelasQuery.isError && (
@@ -87,7 +92,8 @@ export function PainelPage() {
             <p className="text-sm text-ink-secondary">Nenhuma parcela vencendo nos próximos 14 dias.</p>
           )}
           {parcelasVencendo.length > 0 && (
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[560px] text-sm">
               <thead>
                 <tr className="border-b border-border text-left text-[11.5px] uppercase tracking-wide text-ink-secondary">
                   <th className="pb-2">Documento</th>
@@ -98,7 +104,7 @@ export function PainelPage() {
               </thead>
               <tbody>
                 {parcelasVencendo.map((parcela) => (
-                  <tr key={parcela.parcelaId} className="border-b border-[#eef0f2] last:border-0">
+                  <tr key={parcela.parcelaId} className="border-b border-border last:border-0">
                     <td className="py-2.5">Doc. #{parcela.documentoFinanceiroId}</td>
                     <td className="py-2.5">{formatBRL(parcela.valor)}</td>
                     <td className="py-2.5">{formatData(parcela.dataVencimento)}</td>
@@ -111,6 +117,7 @@ export function PainelPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </Card>
 

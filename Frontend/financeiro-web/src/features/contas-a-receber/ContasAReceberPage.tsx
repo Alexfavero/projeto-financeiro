@@ -62,7 +62,8 @@ export function ContasAReceberPage() {
         )}
 
         {itens.length > 0 && (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[560px] text-sm">
             <thead>
               <tr className="border-b border-border text-left text-[11.5px] uppercase tracking-wide text-ink-secondary">
                 <th className="pb-2">Cliente</th>
@@ -73,7 +74,7 @@ export function ContasAReceberPage() {
             </thead>
             <tbody>
               {itens.map((conta) => (
-                <tr key={conta.documentoFinanceiroId} className="border-b border-[#eef0f2] last:border-0">
+                <tr key={conta.documentoFinanceiroId} className="border-b border-border last:border-0">
                   <td className="py-2.5">{nomeCliente(conta.clienteId)}</td>
                   <td className="py-2.5">{formatData(conta.dataVenda)}</td>
                   <td className="py-2.5">{formatBRL(conta.valorTotal)}</td>
@@ -90,6 +91,7 @@ export function ContasAReceberPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
 
         {paginacao && paginacao.totalPages > 1 && (

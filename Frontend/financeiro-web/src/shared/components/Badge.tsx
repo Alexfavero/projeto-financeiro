@@ -4,7 +4,7 @@ type BadgeVariant = "good" | "warning" | "critical" | "muted";
 
 const variantClasses: Record<BadgeVariant, string> = {
   good: "bg-good/10 text-good",
-  warning: "bg-warning/15 text-[#a06400]",
+  warning: "bg-warning/15 text-[#a06400] dark:text-[#ffd166]",
   critical: "bg-critical/10 text-critical",
   muted: "bg-surface-alt text-ink-secondary",
 };

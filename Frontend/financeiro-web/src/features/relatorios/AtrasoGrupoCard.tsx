@@ -16,12 +16,13 @@ interface AtrasoGrupoCardProps {
  */
 export function AtrasoGrupoCard({ titulo, valorTotalAtrasado, parcelas }: AtrasoGrupoCardProps) {
   return (
-    <div className="rounded-card border border-border bg-white p-5">
+    <div className="rounded-card border border-border bg-surface p-5">
       <div className="mb-3 flex items-center justify-between">
         <h4 className="text-sm font-semibold text-ink">{titulo}</h4>
         <Badge variant="critical">{formatBRL(valorTotalAtrasado)} em atraso</Badge>
       </div>
-      <table className="w-full text-sm">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[560px] text-sm">
         <thead>
           <tr className="border-b border-border text-left text-[11px] uppercase tracking-wide text-ink-secondary">
             <th className="pb-2">Documento</th>
@@ -32,7 +33,7 @@ export function AtrasoGrupoCard({ titulo, valorTotalAtrasado, parcelas }: Atraso
         </thead>
         <tbody>
           {parcelas.map((p) => (
-            <tr key={p.parcelaId} className="border-b border-[#eef0f2] last:border-0">
+            <tr key={p.parcelaId} className="border-b border-border last:border-0">
               <td className="py-2">Doc. #{p.documentoFinanceiroId}</td>
               <td className="py-2">{formatBRL(p.valor)}</td>
               <td className="py-2">{formatData(p.dataVencimento)}</td>
@@ -41,6 +42,7 @@ export function AtrasoGrupoCard({ titulo, valorTotalAtrasado, parcelas }: Atraso
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

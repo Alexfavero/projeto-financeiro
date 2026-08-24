@@ -120,7 +120,8 @@ export function ExtratoTab() {
               <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-secondary">
                 Documento #{doc.documentoFinanceiroId} — {formatBRL(doc.valorTotal)}
               </div>
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[560px] text-sm">
                 <thead>
                   <tr className="border-b border-border text-left text-[11px] uppercase tracking-wide text-ink-secondary">
                     <th className="pb-2">Valor</th>
@@ -131,7 +132,7 @@ export function ExtratoTab() {
                 </thead>
                 <tbody>
                   {doc.parcelas.map((p) => (
-                    <tr key={p.parcelaId} className="border-b border-[#eef0f2] last:border-0">
+                    <tr key={p.parcelaId} className="border-b border-border last:border-0">
                       <td className="py-2">{formatBRL(p.valor)}</td>
                       <td className="py-2">{formatData(p.dataVencimento)}</td>
                       <td className="py-2">{p.dataPagamento ? formatData(p.dataPagamento) : "—"}</td>
@@ -142,6 +143,7 @@ export function ExtratoTab() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           ))}
         </Card>
