@@ -10,17 +10,8 @@ const links = [
   { to: "/relatorios", label: "Relatórios" },
 ];
 
-/**
- * Sempre com fundo azul-marinho escuro, em qualquer tema (claro ou escuro do
- * app) — é "chrome" da aplicação, não conteúdo, então não precisa acompanhar
- * o tema (mesmo padrão usado por vários dashboards: a barra lateral fica
- * fixa, só o conteúdo muda de tema).
- *
- * Responsivo: em telas `md` (≥768px) pra cima, fica sempre visível, do jeito
- * que sempre foi. Abaixo disso, vira um menu que abre por cima do conteúdo
- * (controlado pelo botão ☰ na Topbar, estado em AppLayout) — `abertoMobile`
- * decide se está deslizada pra dentro da tela ou escondida à esquerda.
- */
+// fundo escuro fixo em qualquer tema, de propósito (é "chrome" do app, não conteúdo)
+// abaixo de md vira menu deslizante controlado por abertoMobile
 export function Sidebar({
   abertoMobile,
   onFechar,

@@ -23,7 +23,6 @@ namespace Financeiro.Api.Controllers
             _mapper = mapper;
         }
 
-        // GET: api/parcelas/vencendo-hoje
         [HttpGet("vencendo-hoje")]
         public async Task<ActionResult<IEnumerable<ParcelaDTO>>> GetVencendoHoje()
         {
@@ -31,7 +30,6 @@ namespace Financeiro.Api.Controllers
             return Ok(_mapper.Map<IEnumerable<ParcelaDTO>>(parcelas));
         }
 
-        // GET: api/parcelas/atrasadas
         [HttpGet("atrasadas")]
         public async Task<ActionResult<IEnumerable<ParcelaDTO>>> GetAtrasadas()
         {
@@ -39,7 +37,6 @@ namespace Financeiro.Api.Controllers
             return Ok(_mapper.Map<IEnumerable<ParcelaDTO>>(parcelas));
         }
 
-        // GET: api/parcelas/periodo?inicio=2026-03-01&fim=2026-03-31
         [HttpGet("periodo")]
         public async Task<ActionResult<IEnumerable<ParcelaDTO>>> GetPorPeriodo([FromQuery] DateTime inicio, [FromQuery] DateTime fim)
         {
@@ -50,11 +47,8 @@ namespace Financeiro.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ParcelaDTO>>> GetPaged([FromQuery] Financeiro.Api.Pagination.ParcelaParameters parameters)
         {
-            // GetPagedComContraparteAsync (não o GetPagedAsync genérico) porque essa é a
-            // listagem que a tela de Parcelas usa — precisa vir com Tipo/NomeContraparte.
-            // Filtro por status já é parâmetro direto do método; OrderBy não foi
-            // implementado (decisão registrada em status_tcc.md — sem ganho claro sem
-            // front-end consumindo).
+            // usa a versão com contraparte (não o GetPagedAsync genérico) pq a tela
+            // de Parcelas precisa vir com Tipo/NomeContraparte junto
             var paged = await _uof.ParcelaRepository.GetPagedComContraparteAsync(parameters.PageNumber, parameters.PageSize, parameters.Status);
             var paginationMetadata = new
             {
@@ -70,7 +64,6 @@ namespace Financeiro.Api.Controllers
             return Ok(result);
         }
 
-        // GET: api/parcelas/5
         [HttpGet("{id}", Name = "GetParcelaById")]
         public async Task<ActionResult<ParcelaDTO>> Get(int id)
         {
@@ -80,17 +73,15 @@ namespace Financeiro.Api.Controllers
             return Ok(_mapper.Map<ParcelaDTO>(parcela));
         }
 
-        // PUT: api/parcelas/5 (Útil para dar baixa no pagamento)
+        // esse PUT tb é usado pra dar baixa no pagamento
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, ParcelaDTO parcelaDTO)
         {
             if (id != parcelaDTO.ParcelaId) return BadRequest("IDs não conferem");
 
-            // obter entidade rastreada
             var existing = await _uof.ParcelaRepository.GetTrackedAsync(p => p.ParcelaId == id);
             if (existing == null) return NotFound("Parcela não encontrada");
 
-            // mapear valores do DTO sobre a entidade existente
             _mapper.Map(parcelaDTO, existing);
             _uof.ParcelaRepository.Update(existing);
             await _uof.CommitAsync();
@@ -98,18 +89,15 @@ namespace Financeiro.Api.Controllers
             return Ok(_mapper.Map<ParcelaDTO>(existing));
         }
 
-        // DELETE: api/parcelas/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            // obter entidade rastreada antes de remover
             var parcela = await _uof.ParcelaRepository.GetTrackedAsync(p => p.ParcelaId == id);
             if (parcela == null) return NotFound("Parcela não encontrada");
 
             _uof.ParcelaRepository.Delete(parcela);
             await _uof.CommitAsync();
 
-            // padronização: retorna 204 NoContent para deletes sem payload
             return NoContent();
         }
     }

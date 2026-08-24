@@ -14,7 +14,7 @@ namespace Financeiro.Api.Repositories.Implementations
             _context = context;
         }
 
-        // leitura paginada sem tracking (para GETs); filter opcional (ex.: Categoria, Status)
+        // sem tracking pq é usado em GET; filter é opcional (ex: Categoria, Status)
         public async Task<Financeiro.Api.Pagination.PagedList<T>> GetPagedAsync(int pageNumber, int pageSize, Expression<Func<T, bool>>? filter = null)
         {
             var source = _context.Set<T>().AsNoTracking();
@@ -24,19 +24,17 @@ namespace Financeiro.Api.Repositories.Implementations
             return await Financeiro.Api.Pagination.PagedList<T>.ToPagedListAsync(source, pageNumber, pageSize);
         }
 
-        // leitura sem tracking (melhor para endpoints GET)
         public async Task<IEnumerable<T>> GetAllAsync()
         {
             return await _context.Set<T>().AsNoTracking().ToListAsync();
         }
 
-        // leitura sem tracking (mantém o comportamento atual)
         public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate)
         {
             return await _context.Set<T>().AsNoTracking().FirstOrDefaultAsync(predicate);
         }
 
-        // leitura com tracking: usada antes de Update/Delete para que o EF Core acompanhe a entidade
+        // com tracking, pq precisa antes de Update/Delete pro EF acompanhar a entidade
         public async Task<T?> GetTrackedAsync(Expression<Func<T, bool>> predicate)
         {
             return await _context.Set<T>().FirstOrDefaultAsync(predicate);

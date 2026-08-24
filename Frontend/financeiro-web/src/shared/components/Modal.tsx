@@ -1,10 +1,5 @@
 import type { ReactNode } from "react";
 
-/**
- * Modal genérico e simples (overlay + card centralizado). Fecha clicando
- * fora ou no "✕"; o conteúdo (`children`) decide o resto — inclusive os
- * botões de ação, no rodapé do próprio conteúdo.
- */
 export function Modal({
   open,
   onClose,

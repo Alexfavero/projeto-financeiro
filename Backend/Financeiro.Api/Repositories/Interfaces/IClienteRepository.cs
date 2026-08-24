@@ -6,8 +6,8 @@ namespace Financeiro.Api.Repositories.Interfaces
     {
         Task<Cliente?> GetClienteComContasAsync(int id);
 
-        // Para o relatório de ranking (top clientes): todos os clientes com suas
-        // ContaAReceber e Parcelas incluídas, para somar por cliente no RelatorioService.
+        // usado no ranking de clientes: já traz ContaAReceber e Parcelas incluídas
+        // pra somar por cliente no RelatorioService
         Task<IEnumerable<Cliente>> GetTodosComContasAsync();
     }
 }

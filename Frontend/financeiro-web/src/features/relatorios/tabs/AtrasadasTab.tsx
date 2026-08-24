@@ -4,9 +4,8 @@ import { extractApiErrorMessage } from "@/lib/api";
 import { getContasAPagarAtrasadas } from "../api";
 import { AtrasoGrupoCard } from "../AtrasoGrupoCard";
 
-// Relatório 4: espelho da Inadimplência, do lado de quem se deve (Contas a
-// Pagar atrasadas, agrupadas por fornecedor — "Sem fornecedor" quando a
-// conta não tem um informado, já que o campo é opcional no backend).
+// espelho da Inadimplência do lado de quem se deve — agrupa por fornecedor,
+// "Sem fornecedor" quando a conta não tem um informado (campo opcional)
 export function AtrasadasTab() {
   const query = useQuery({
     queryKey: ["relatorios", "contas-a-pagar-atrasadas"],

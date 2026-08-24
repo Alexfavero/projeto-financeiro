@@ -24,8 +24,6 @@ namespace Financeiro.Api.Controllers
             _mapper = mapper;
         }
 
-        // GET: api/contasAReceber
-
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ContaAReceberDTO>>> GetPaged([FromQuery] Financeiro.Api.Pagination.ContaAReceberParameters parameters)
         {
@@ -44,7 +42,6 @@ namespace Financeiro.Api.Controllers
             return Ok(result);
         }
 
-        // GET: api/contasAReceber/5
         [HttpGet("{id}", Name = "GetById")]
         public async Task<ActionResult<ContaAReceberDTO>> Get(int id)
         {
@@ -59,13 +56,11 @@ namespace Financeiro.Api.Controllers
         }
 
 
-        // POST: api/contasAReceber
         [HttpPost]
         public async Task<ActionResult> Create(ContaAReceberDTO contaAReceberDTO)
         {
             var contaAReceber = _mapper.Map<ContaAReceber>(contaAReceberDTO);
 
-            // validação de FK: Cliente deve existir
             var cliente = await _uof.ClienteRepository.GetAsync(c => c.ClienteId == contaAReceber.ClienteId);
             if (cliente == null) return BadRequest("Cliente não encontrado");
 
@@ -76,7 +71,6 @@ namespace Financeiro.Api.Controllers
             return CreatedAtAction(nameof(Get), new { id = contaAReceber.DocumentoFinanceiroId }, contaAReceberDTOCreated);
         }
 
-        // PUT: api/contasAReceber/5
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, ContaAReceberDTO contaAReceberDTO)
         {
@@ -86,11 +80,9 @@ namespace Financeiro.Api.Controllers
                 return BadRequest("IDs não conferem");
             }
 
-            // obter entidade rastreada
             var existing = await _uof.ContaAReceberRepository.GetTrackedAsync(c => c.DocumentoFinanceiroId == id);
             if (existing == null) return NotFound("Conta a receber não encontrado");
 
-            // validação de FK
             var cliente = await _uof.ClienteRepository.GetAsync(c => c.ClienteId == contaAReceberDTO.ClienteId);
             if (cliente == null) return BadRequest("Cliente não encontrado");
 
@@ -101,7 +93,6 @@ namespace Financeiro.Api.Controllers
             return Ok(_mapper.Map<ContaAReceberDTO>(existing));
         }
 
-        // DELETE: api/contasAReceber/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

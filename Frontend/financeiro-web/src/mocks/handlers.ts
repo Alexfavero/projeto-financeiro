@@ -36,8 +36,7 @@ import type {
 
 const API = import.meta.env.VITE_API_URL;
 
-// Token "falso" só pra existir algo não-vazio guardado (não é um JWT de
-// verdade — o front-end nesta parte só confere se ele existe, não decodifica).
+// não é um JWT de verdade, o front só confere se existe, não decodifica.
 function fakeToken(username: string) {
   return `mock.${username}.${Date.now()}`;
 }
@@ -47,9 +46,8 @@ function dentroDoIntervalo(dataIso: string, inicio: string, fim: string) {
   return d >= inicio.slice(0, 10) && d <= fim.slice(0, 10);
 }
 
-// Fatia uma lista em memória do mesmo jeito que o QueryStringParameters +
-// PagedList reais fazem no backend, devolvendo os mesmos metadados que
-// normalmente vêm no header X-Pagination.
+// imita o QueryStringParameters + PagedList do backend, devolvendo os
+// mesmos metadados que vêm no header X-Pagination.
 function paginar<T>(itens: T[], pageNumber: number, pageSize: number) {
   const totalCount = itens.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
@@ -77,10 +75,9 @@ const PAGO: StatusPagamento = 2;
 const PENDENTE: StatusPagamento = 1;
 
 // ---- Helpers dos Relatórios ----
-// Espelham exatamente a regra de `RelatorioService.cs` real (conferido
-// 24/08): "atrasada" é status != Pago com vencimento no passado (não só
-// Pendente — Atrasado também conta, diferente da simplificação já existente
-// no handler de `/Parcelas/atrasadas`, que é mais restrito de propósito).
+// espelha a regra do RelatorioService.cs real: "atrasada" é status != Pago
+// com vencimento no passado (não só Pendente). Diferente do handler de
+// /Parcelas/atrasadas, que é mais restrito de propósito.
 
 function diasAtraso(dataVencimentoIso: string): number {
   const vencimento = new Date(dataVencimentoIso.slice(0, 10) + "T00:00:00");
@@ -372,11 +369,9 @@ export const handlers = [
     return HttpResponse.json(conta);
   }),
 
-  // Exclui a conta inteira — não uma parcela avulsa. Como as parcelas ficam
-  // aninhadas dentro da própria conta neste mock (mesma estrutura de
-  // mockContasAPagar/mockContasAReceber), remover a conta já remove as
-  // parcelas dela junto, imitando o ON DELETE CASCADE configurado no banco
-  // real entre Parcela e DocumentoFinanceiro.
+  // exclui a conta inteira, não uma parcela avulsa. Como as parcelas ficam
+  // aninhadas dentro da conta neste mock, apagar a conta já leva as
+  // parcelas junto (imita o ON DELETE CASCADE do banco real).
   http.delete(`${API}/ContasAPagar/:id`, ({ params }) => {
     const id = Number(params.id);
     const index = mockContasAPagar.findIndex((c) => c.documentoFinanceiroId === id);
@@ -433,10 +428,9 @@ export const handlers = [
   }),
 
   // ---- Relatórios ----
-  // Os 7 endpoints reais de RelatoriosController.cs, todo o cálculo (agrupar,
-  // somar, filtrar) reproduzindo `RelatorioService.cs` sobre os mesmos
-  // arrays em memória usados pelas outras telas — uma parcela dada baixa em
-  // Parcelas, por exemplo, já aparece aqui sem nenhum handler adicional.
+  // os 7 endpoints do RelatoriosController.cs, reproduzindo o cálculo do
+  // RelatorioService.cs sobre os mesmos arrays das outras telas — uma
+  // parcela dada baixa em Parcelas já aparece aqui direto, sem handler extra.
 
   // Relatório 1: parcelas de Contas a Receber atrasadas, agrupadas por cliente.
   http.get(`${API}/Relatorios/inadimplencia`, () => {

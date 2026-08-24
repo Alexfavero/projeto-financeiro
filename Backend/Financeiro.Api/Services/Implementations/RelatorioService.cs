@@ -6,11 +6,8 @@ using Financeiro.Api.Services.Interfaces;
 
 namespace Financeiro.Api.Services.Implementations
 {
-    // Regra de negócio real (agrupar, somar e ordenar dados de várias entidades), por
-    // isso tem Service. Diferente do PrevisaoService (que soma tudo no banco via
-    // SumAsync), aqui os repositórios trazem o grafo já com Include (Cliente/Fornecedor
-    // + Parcelas) e quem filtra, agrupa e soma é este Service — mais fácil de explicar
-    // e de ajustar depois, e o volume de dados de um TCC não justifica a otimização.
+    // diferente do PrevisaoService (que soma tudo no banco via SumAsync), aqui os
+    // repositórios trazem o grafo com Include e quem filtra, agrupa e soma é este Service
     public class RelatorioService : IRelatorioService
     {
         private readonly IUnitOfWork _uof;
@@ -20,8 +17,7 @@ namespace Financeiro.Api.Services.Implementations
             _uof = uof;
         }
 
-        // Relatório 1: inadimplência — parcelas de ContaAReceber vencidas e não pagas,
-        // agrupadas por cliente.
+        // inadimplência: parcelas de ContaAReceber vencidas e não pagas, agrupadas por cliente
         public async Task<IEnumerable<InadimplenciaClienteDTO>> ObterInadimplenciaAsync()
         {
             var contas = await _uof.ContaAReceberRepository.GetTodasComParcelasAsync();
@@ -51,9 +47,8 @@ namespace Financeiro.Api.Services.Implementations
                 .ToList();
         }
 
-        // Relatório 2: gastos por categoria — ContaAPagar paga num período (pela
-        // DataPagamento, igual ao "realizado" do PrevisaoService), agrupada por
-        // CategoriaGasto.
+        // gastos por categoria: ContaAPagar paga no período (pela DataPagamento, igual
+        // ao "realizado" do PrevisaoService), agrupada por CategoriaGasto
         public async Task<IEnumerable<GastoPorCategoriaDTO>> ObterGastosPorCategoriaAsync(DateTime inicio, DateTime fim)
         {
             var contas = await _uof.ContaAPagarRepository.GetTodasComParcelasAsync();
@@ -77,9 +72,8 @@ namespace Financeiro.Api.Services.Implementations
                 .ToList();
         }
 
-        // Relatório 3a: extrato de um cliente — todas as ContaAReceber e Parcelas dele.
-        // Devolve null quando o cliente não existe (ou não é do usuário logado — o
-        // filtro global do AppDbContext já cuida disso).
+        // devolve null se o cliente não existe (ou não é do usuário logado, o filtro
+        // global do AppDbContext já filtra isso)
         public async Task<ExtratoDTO?> ObterExtratoClienteAsync(int clienteId)
         {
             var cliente = await _uof.ClienteRepository.GetClienteComContasAsync(clienteId);
@@ -94,7 +88,6 @@ namespace Financeiro.Api.Services.Implementations
             };
         }
 
-        // Relatório 3b: extrato de um fornecedor — todas as ContaAPagar e Parcelas dele.
         public async Task<ExtratoDTO?> ObterExtratoFornecedorAsync(int fornecedorId)
         {
             var fornecedor = await _uof.FornecedorRepository.GetAsync(f => f.FornecedorId == fornecedorId);
@@ -111,9 +104,8 @@ namespace Financeiro.Api.Services.Implementations
             };
         }
 
-        // Relatório 4: contas a pagar atrasadas — espelho do relatório 1, do lado de
-        // quem se deve. Fornecedor é opcional em ContaAPagar, então parcelas sem
-        // fornecedor entram agrupadas como "Sem fornecedor" em vez de sumir do relatório.
+        // Fornecedor é opcional em ContaAPagar, então parcelas sem fornecedor entram
+        // agrupadas como "Sem fornecedor" em vez de sumir do relatório
         public async Task<IEnumerable<ContaAtrasadaFornecedorDTO>> ObterContasAPagarAtrasadasAsync()
         {
             var contas = await _uof.ContaAPagarRepository.GetTodasComParcelasAsync();
@@ -143,7 +135,6 @@ namespace Financeiro.Api.Services.Implementations
                 .ToList();
         }
 
-        // Relatório 5a: ranking de clientes por valor pago (recebido).
         public async Task<IEnumerable<RankingDTO>> ObterTopClientesAsync(int quantidade = 10)
         {
             var clientes = await _uof.ClienteRepository.GetTodosComContasAsync();
@@ -161,7 +152,6 @@ namespace Financeiro.Api.Services.Implementations
                 .ToList();
         }
 
-        // Relatório 5b: ranking de fornecedores por valor pago.
         public async Task<IEnumerable<RankingDTO>> ObterTopFornecedoresAsync(int quantidade = 10)
         {
             var contas = await _uof.ContaAPagarRepository.GetTodasComParcelasAsync();
@@ -181,8 +171,8 @@ namespace Financeiro.Api.Services.Implementations
                 .ToList();
         }
 
-        // Mesma regra usada no PrevisaoRepository (ParcelaRepository): "atrasada" é
-        // parcela ainda não paga cuja DataVencimento já passou.
+        // mesma regra do ParcelaRepository: "atrasada" é parcela ainda não paga cuja
+        // DataVencimento já passou
         private static bool EstaAtrasada(Parcela parcela) =>
             parcela.Status != StatusPagamento.Pago && parcela.DataVencimento.Date < DateTime.Today;
 

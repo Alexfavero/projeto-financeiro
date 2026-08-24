@@ -19,11 +19,8 @@ const STATUS_BADGE_VARIANT: Record<StatusPagamento, "good" | "warning" | "critic
   3: "critical", // Atrasado
 };
 
-// Relatório 3: histórico completo de um cliente ou fornecedor específico —
-// por isso precisa de uma seleção antes de mostrar qualquer coisa
-// (diferente dos outros relatórios, que já vêm prontos). Dropdown reaproveita
-// listClientes()/listFornecedores(), já usados nas telas de Contas a
-// Pagar/Receber pro mesmo tipo de resolução id → nome.
+// histórico de um cliente/fornecedor específico — por isso precisa escolher
+// antes de mostrar algo, diferente dos outros relatórios
 export function ExtratoTab() {
   const [tipo, setTipo] = useState<Tipo>("cliente");
   const [entidadeId, setEntidadeId] = useState<number | "">("");

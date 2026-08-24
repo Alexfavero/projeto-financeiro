@@ -7,14 +7,6 @@ import { extractApiErrorMessage } from "@/lib/api";
 import { setSession } from "@/shared/auth/authStorage";
 import { login, register } from "./api";
 
-/**
- * Parte 2: login e criação de conta de verdade, batendo em
- * `POST /api/auth/login` e `POST /api/auth/register` (via MSW no modo mock
- * — ver src/mocks/handlers.ts — ou a API real quando VITE_USE_MOCKS=false).
- *
- * Usuário de demonstração já cadastrado no mock: usuário "demo", senha
- * "demo1234" — não precisa criar conta pra testar o login.
- */
 export function LoginPage() {
   const navigate = useNavigate();
   const [tab, setTab] = useState<"entrar" | "criar">("entrar");

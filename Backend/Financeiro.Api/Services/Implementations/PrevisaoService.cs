@@ -4,8 +4,8 @@ using Financeiro.Api.Services.Interfaces;
 
 namespace Financeiro.Api.Services.Implementations
 {
-    // Regra de negócio real (junta 4 totais em 1 resposta), por isso tem Service —
-    // diferente dos CRUDs simples, que os controllers chamam direto no UnitOfWork.
+    // tem Service pq junta 4 totais numa resposta só; os CRUDs simples os controllers
+    // chamam direto no UnitOfWork
     public class PrevisaoService : IPrevisaoService
     {
         private readonly IUnitOfWork _uof;

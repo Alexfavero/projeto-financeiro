@@ -33,10 +33,8 @@ interface Bucket {
   aPagar: number;
 }
 
-// Um dia dentro do mês selecionado no "detalhe do mês" — quatro números em
-// vez de dois, porque aqui "Já pago/recebido" e "Previsto" aparecem juntos
-// (empilhados), não alternados por um botão de modo como no resto do
-// gráfico.
+// detalhe diário: 4 números em vez de 2 pq aqui pago/recebido e previsto
+// aparecem empilhados juntos, não alternados pelo botão de modo
 interface BucketDiario {
   dia: number;
   label: string;
@@ -46,13 +44,9 @@ interface BucketDiario {
   aPagarPendente: number;
 }
 
-// Resumo de tudo que está sendo mostrado no gráfico no momento — os 4
-// números "brutos" (recebido, pago, em aberto de cada lado) mais o saldo
-// (recebido + a receber em aberto, menos pago + a pagar em aberto — ou
-// seja, o resultado líquido esperado do período inteiro, já realizado ou
-// ainda por vir). Independente do botão "modo": aqui os dois sempre entram
-// juntos, porque é um resumo do que está no gráfico, não uma das duas
-// visões alternadas.
+// saldo = recebido + a receber em aberto - (pago + a pagar em aberto), ou
+// seja o resultado líquido esperado do período todo, já realizado ou não.
+// Sempre soma os dois status juntos, independe do botão de modo.
 interface TotaisPeriodo {
   recebido: number;
   pago: number;
@@ -80,8 +74,6 @@ function labelMesCompleto(chave: string): string {
   return `${nome.charAt(0).toUpperCase()}${nome.slice(1)} de ${ano}`;
 }
 
-// Gera a lista de chaves "yyyy-MM" dos últimos `qtd` meses, terminando no
-// mês corrente (incluso).
 function ultimosMeses(qtd: number): string[] {
   const hoje = new Date();
   return Array.from({ length: qtd }, (_, i) => {
@@ -95,16 +87,14 @@ function ultimosAnos(qtd: number): string[] {
   return Array.from({ length: qtd }, (_, i) => String(anoAtual - (qtd - 1 - i)));
 }
 
-// Quantos dias tem o mês "yyyy-MM" (o dia 0 do mês seguinte é sempre o
-// último dia do mês atual — truque padrão do objeto Date do JS).
+// dia 0 do mês seguinte = último dia do mês atual (truque do Date do JS)
 function diasNoMes(anoMes: string): number {
   const [ano, mes] = anoMes.split("-").map(Number);
   return new Date(ano, mes, 0).getDate();
 }
 
-// "Realizado" olha pra quem já foi de fato pago (Status Pago, por
-// DataPagamento) — mesma regra do PrevisaoService. "Previsto" olha pro que
-// ainda está por vir (Status != Pago, por DataVencimento).
+// "Realizado" = status Pago, por DataPagamento (mesma regra do
+// PrevisaoService no backend). "Previsto" = status != Pago, por DataVencimento.
 function dadoRelevante(p: ParcelaDTO, modo: ModoDado): boolean {
   if (modo === "realizado") return p.status === StatusPagamento.Pago && !!p.dataPagamento;
   return p.status !== StatusPagamento.Pago;
@@ -114,17 +104,14 @@ function dataDoModo(p: ParcelaDTO, modo: ModoDado): string {
   return modo === "realizado" ? (p.dataPagamento as string) : p.dataVencimento;
 }
 
-// A "janela" de chaves (meses ou anos) que a escala atual está mostrando —
-// extraído à parte de `construirBuckets` porque o resumo de totais
-// (`construirTotaisGerais`) precisa da mesma janela, mas somando os dois
-// status (pago e pendente) ao mesmo tempo, não só o do modo selecionado.
+// extraído separado de `construirBuckets` pq `construirTotaisGerais` precisa
+// da mesma janela, mas somando pago+pendente juntos, não só o modo atual
 function obterJanela(parcelas: ParcelaDTO[], escala: Escala, modo: ModoDado): { chaves: string[]; porMes: boolean } {
   if (escala === "mensal") return { chaves: ultimosMeses(12), porMes: true };
   if (escala === "anual") return { chaves: ultimosAnos(5), porMes: false };
 
-  // "Toda amplitude": olha o intervalo real dos dados do modo atual (do
-  // mais antigo ao mais recente) e decide mês ou ano conforme o tamanho —
-  // mês fica ilegível (barras demais) acima de ~2 anos de histórico.
+  // "tudo": olha o intervalo real dos dados (mais antigo ao mais recente) e
+  // decide mês ou ano pelo tamanho — mês fica ilegível acima de ~2 anos
   const relevantes = parcelas.filter((p) => dadoRelevante(p, modo));
   if (relevantes.length === 0) return { chaves: [], porMes: true };
 
@@ -160,7 +147,7 @@ function construirBuckets(parcelas: ParcelaDTO[], escala: Escala, modo: ModoDado
     const data = dataDoModo(p, modo);
     const chave = porMes ? chaveMes(data) : chaveAno(data);
     const bucket = somaPorChave.get(chave);
-    if (!bucket) continue; // fora da janela fixa (só ocorre em "mensal"/"anual", que têm janela de tamanho fixo)
+    if (!bucket) continue; // fora da janela fixa (só em "mensal"/"anual")
     if (p.tipo === "AReceber") bucket.aReceber += p.valor;
     else if (p.tipo === "APagar") bucket.aPagar += p.valor;
   }
@@ -172,13 +159,9 @@ function construirBuckets(parcelas: ParcelaDTO[], escala: Escala, modo: ModoDado
   }));
 }
 
-// Detalhe dia a dia de um único mês ("yyyy-MM"), pros dois lados (Contas a
-// Receber e Contas a Pagar) e os dois status (pago/recebido x pendente) ao
-// mesmo tempo — por isso não depende do "modo" (Realizado/Previsto), que só
-// faz sentido na visão de vários meses/anos. Cada parcela entra em no
-// máximo um dos dois grupos: pago/recebido (status Pago, por Data de
-// Pagamento) OU pendente (status != Pago, vencendo dentro do mês, por Data
-// de Vencimento) — nunca nos dois.
+// não depende do "modo" pq mostra pago/recebido e pendente juntos. cada
+// parcela cai em só um dos dois grupos: pago (por DataPagamento) OU
+// pendente (por DataVencimento dentro do mês) — nunca nos dois
 function construirBucketsDiarios(parcelas: ParcelaDTO[], anoMes: string): BucketDiario[] {
   const totalDias = diasNoMes(anoMes);
   const buckets: BucketDiario[] = Array.from({ length: totalDias }, (_, i) => ({
@@ -211,10 +194,8 @@ function construirBucketsDiarios(parcelas: ParcelaDTO[], anoMes: string): Bucket
   return buckets;
 }
 
-// Resumo do que está dentro da janela (`chaves`) atualmente exibida na
-// visão geral (Mensal/Anual/Todo o período) — soma recebido/pago/em aberto
-// dos dois lados ao mesmo tempo, sem depender do "modo" selecionado (que só
-// decide qual das duas séries vira barra no gráfico).
+// soma recebido/pago/em aberto dentro da janela, sem depender do "modo"
+// (que só decide qual série vira barra no gráfico)
 function construirTotaisGerais(parcelas: ParcelaDTO[], chaves: string[], porMes: boolean): TotaisPeriodo {
   const chaveSet = new Set(chaves);
   let recebido = 0;
@@ -239,8 +220,7 @@ function construirTotaisGerais(parcelas: ParcelaDTO[], chaves: string[], porMes:
   return { recebido, pago, aReceberAberto, aPagarAberto, saldo: recebido + aReceberAberto - (pago + aPagarAberto) };
 }
 
-// Mesmo resumo, mas a partir dos buckets diários já calculados (soma os 30
-// e poucos dias do mês em detalhe).
+// mesmo resumo, mas a partir dos buckets diários já calculados
 function totaisDosBucketsDiarios(buckets: BucketDiario[]): TotaisPeriodo {
   const recebido = buckets.reduce((soma, d) => soma + d.aReceberPago, 0);
   const pago = buckets.reduce((soma, d) => soma + d.aPagarPago, 0);
@@ -254,8 +234,6 @@ function formatarEixoY(valor: number): string {
   return String(valor);
 }
 
-// Uma "pastilha" do resumo de totais — rótulo pequeno em cima, valor em
-// baixo, cor conforme o tipo do número.
 function PastilhaTotal({ rotulo, valor, cor }: { rotulo: string; valor: number; cor: "good" | "critical" | "primary" }) {
   const corTexto = cor === "good" ? "text-good" : cor === "critical" ? "text-critical" : "text-primary";
   return (
@@ -266,32 +244,12 @@ function PastilhaTotal({ rotulo, valor, cor }: { rotulo: string; valor: number; 
   );
 }
 
-/**
- * Gráfico comparativo A Receber x A Pagar do Painel, com duas escolhas
- * independentes: a escala do agrupamento (Mensal = últimos 12 meses, Anual =
- * últimos 5 anos, Todo o período = desde a parcela mais antiga até hoje,
- * mês ou ano conforme o tamanho do intervalo) e o dado mostrado (Já
- * pago/recebido = Realizado, por Data de Pagamento; ou Previsto, por Data
- * de Vencimento — mesma distinção já usada nos cards do Painel e nos
- * relatórios de Gastos por Categoria/Ranking).
- *
- * Dentro da escala "Mensal" existe ainda um terceiro nível, opcional: um
- * seletor "ver detalhe de um mês", que troca a visão de "12 barras, uma por
- * mês" para "uma barra por dia daquele mês", com Já pago/recebido e
- * Previsto empilhados juntos em cada barra (em vez de alternados pelo botão
- * de modo, que fica escondido nesse estado).
- *
- * Acima do gráfico (abaixo dos botões) fica um resumo com 5 números —
- * Recebido, Pago, A Receber em aberto, A Pagar em aberto e Saldo — sempre
- * referentes exatamente ao que está sendo exibido no gráfico no momento
- * (a mesma janela de tempo, com os dois status somados juntos independente
- * do botão de modo).
- *
- * Busca o histórico inteiro de parcelas uma vez só (`getTodasParcelasParaGrafico`)
- * e faz todo o agrupamento no front — o backend não tem um endpoint de série
- * temporal pronto, só o /Previsao (um total por período, não quebrado por
- * sub-período).
- */
+// duas escolhas independentes: escala (mensal/anual/tudo) e modo
+// (realizado x previsto). Dentro de "mensal" ainda tem o seletor de detalhe
+// de um mês específico, que troca pra barra por dia com os dois modos
+// empilhados juntos (por isso os botões de modo somem nesse estado).
+// busca o histórico inteiro de uma vez e agrupa tudo no front, já que o
+// backend não tem endpoint de série temporal, só /Previsao (total por período)
 export function HistoricoChart() {
   const [escala, setEscala] = useState<Escala>("mensal");
   const [modo, setModo] = useState<ModoDado>("realizado");
@@ -299,9 +257,8 @@ export function HistoricoChart() {
 
   const query = useQuery({ queryKey: ["parcelas-todas-grafico"], queryFn: getTodasParcelasParaGrafico });
 
-  // O seletor de mês só existe (e só tem efeito) dentro da escala Mensal —
-  // trocar pra Anual/Todo o período volta pra visão normal daquela escala,
-  // mas guarda a escolha de mês pro caso de o usuário voltar pra Mensal.
+  // o seletor de mês só tem efeito na escala Mensal — trocar de escala volta
+  // pra visão normal mas guarda a escolha, caso volte pra Mensal depois
   const detalheAtivo = escala === "mensal" && mesDetalhe !== "";
 
   const mesesParaSelecao = useMemo(() => [...ultimosMeses(12)].reverse(), []);

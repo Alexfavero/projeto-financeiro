@@ -10,11 +10,7 @@ import type { ClienteDTO } from "@/types/dtos";
 import { clienteSchema, type ClienteFormValues } from "./schema";
 import { createCliente, updateCliente } from "./api";
 
-/**
- * Modal de criar/editar cliente — o mesmo formulário serve pros dois casos;
- * `cliente` presente = modo edição (pré-preenche e faz PUT), ausente = modo
- * criação (POST).
- */
+// mesmo form serve pra criar e editar: `cliente` presente = edição (PUT), ausente = criação (POST)
 export function ClienteFormModal({
   open,
   onClose,
@@ -37,8 +33,6 @@ export function ClienteFormModal({
     defaultValues: { nome: "", email: "", telefone: "", endereco: "" },
   });
 
-  // Recarrega o formulário toda vez que a modal abre — com os dados do
-  // cliente (edição) ou em branco (criação).
   useEffect(() => {
     if (open) {
       reset({

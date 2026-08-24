@@ -29,19 +29,11 @@ type Aba = "todas" | "atrasadas" | "semana";
 const hoje = hojeISO();
 const fimSemana = addDiasISO(hoje, 6);
 
-/**
- * Não é um CRUD: parcela só nasce dentro de uma Conta a Pagar/Receber (tela
- * de Lançar Conta), então aqui não existe "criar". O que existe é listar (com
- * 3 recortes — Todas, Atrasadas, Esta semana), "dar baixa" (marcar como
- * paga — caso de uso "Registrar Pagamento de Parcela" da ERS) e "editar"
- * (corrigir valor/data de um lançamento errado, sem precisar excluir a conta
- * inteira — avisa mas não bloqueia se isso desbalancear a soma das parcelas).
- * Excluir uma parcela avulsa não é oferecido aqui: quebraria a regra de que a
- * soma bate com o valor total da conta. Pra desfazer um lançamento inteiro
- * errado, o caminho é excluir a conta inteira (parcelas incluídas, cascade já
- * configurado no banco) — ação que fica na futura tela de Contas a
- * Pagar/Receber, não aqui.
- */
+// não é CRUD: parcela só nasce dentro de uma Conta a Pagar/Receber, então não
+// tem "criar" aqui. Só listar (Todas/Atrasadas/Esta semana), dar baixa e
+// editar. Excluir parcela avulsa não é oferecido pq quebraria a regra de que
+// a soma bate com o valor total da conta — pra desfazer um lançamento errado
+// o certo é excluir a conta inteira (cascade cuida das parcelas)
 export function ParcelasPage() {
   const [aba, setAba] = useState<Aba>("todas");
   const [pagina, setPagina] = useState(1);

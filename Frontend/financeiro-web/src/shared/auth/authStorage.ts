@@ -1,13 +1,8 @@
-/**
- * Guarda o token de acesso e o nome do usuário logado no localStorage.
- *
- * Simplificação consciente desta Parte 2: não implementamos a rotação de
- * refresh token no Axios (interceptor de resposta 401 -> chamar
- * /auth/refresh-token -> repetir a requisição original). Por enquanto, se o
- * access token expirar ou a API responder 401, o usuário simplesmente volta
- * pra tela de login. Dá pra evoluir isso depois sem mudar o resto do app,
- * porque tudo que lê/escreve o token passa por este arquivo.
- */
+// guarda token de acesso e usuário logado no localStorage.
+// não tem rotação de refresh token ainda (interceptor 401 -> chamar
+// /auth/refresh-token -> repetir a requisição). Por ora, expirou o token
+// ou deu 401, volta pro login. Dá pra evoluir isso depois sem mexer no
+// resto do app, já que tudo passa por aqui.
 
 const ACCESS_TOKEN_KEY = "financeiro:accessToken";
 const REFRESH_TOKEN_KEY = "financeiro:refreshToken";

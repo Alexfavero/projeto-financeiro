@@ -1,20 +1,13 @@
 import axios from "axios";
 import { clearSession, getAccessToken } from "@/shared/auth/authStorage";
 
-/**
- * Instância única do Axios usada por todas as chamadas de API.
- *
- * Em modo mock (VITE_USE_MOCKS=true), o MSW intercepta as requisições antes
- * delas chegarem à rede de verdade — então o `baseURL` abaixo é usado tanto
- * pra bater no MSW (que registra os handlers com esse mesmo prefixo) quanto,
- * mais pra frente, pra bater na API real.
- */
+// em modo mock (VITE_USE_MOCKS=true) o MSW intercepta antes de chegar na
+// rede de verdade, usando esse mesmo baseURL como prefixo dos handlers
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   headers: { "Content-Type": "application/json" },
 });
 
-// Anexa o Bearer token em toda requisição, quando existir.
 api.interceptors.request.use((config) => {
   const token = getAccessToken();
   if (token) {
@@ -23,8 +16,8 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// 401 = token ausente/expirado/inválido. Por ora (ver authStorage.ts),
-// simplesmente limpa a sessão e manda pro login em vez de tentar renovar.
+// 401 = token ausente/expirado/inválido. Por ora só limpa a sessão e manda
+// pro login em vez de tentar renovar (ver authStorage.ts).
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -36,14 +29,9 @@ api.interceptors.response.use(
   },
 );
 
-/**
- * Extrai uma mensagem de erro amigável de uma resposta de erro do Axios,
- * cobrindo os três formatos que a API pode devolver:
- * - `Response { status, message }` (ex.: AuthController.Register)
- * - `ErrorDetails { statusCode, message, trace }` (middleware de exceção)
- * - `ValidationProblemDetails` do [ApiController] (400 automático de
- *   validação de model, formato `{ errors: { Campo: ["mensagem"] } }`)
- */
+// cobre os 3 formatos de erro que a API devolve: Response{status,message},
+// ErrorDetails{statusCode,message,trace} do middleware, e
+// ValidationProblemDetails{errors:{Campo:["msg"]}} do 400 automático
 export function extractApiErrorMessage(error: unknown, fallback: string): string {
   if (axios.isAxiosError(error)) {
     const data = error.response?.data;

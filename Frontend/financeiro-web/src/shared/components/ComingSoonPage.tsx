@@ -1,11 +1,6 @@
 import { AppLayout } from "@/app/layout/AppLayout";
 import { Card } from "@/shared/components/Card";
 
-/**
- * Placeholder pras rotas que ainda não foram implementadas, só pra dar
- * pra navegar pela Sidebar inteira sem quebrar nada. Cada uma dessas vira
- * uma feature de verdade nas próximas partes.
- */
 export function ComingSoonPage({ title }: { title: string }) {
   return (
     <AppLayout title={title}>

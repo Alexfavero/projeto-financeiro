@@ -6,8 +6,8 @@ namespace Financeiro.Api.Repositories.Interfaces
     {
         Task<ContaAReceber?> GetContaCompletaAsync(int id);
 
-        // Para os relatórios de inadimplência e gastos: traz tudo com Cliente e Parcelas
-        // incluídos, e o filtro/agrupamento por relatório fica no RelatorioService.
+        // usado nos relatórios de inadimplência e gastos: já traz Cliente e Parcelas
+        // incluídos, o filtro/agrupamento fica no RelatorioService
         Task<IEnumerable<ContaAReceber>> GetTodasComParcelasAsync();
     }
 }

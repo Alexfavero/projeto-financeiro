@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// Limites de tamanho batem com as anotações [StringLength] do ClienteDTO.cs real.
+// limites batem com [StringLength] do ClienteDTO.cs
 export const clienteSchema = z.object({
   nome: z.string().min(1, "Informe o nome").max(100, "Máximo de 100 caracteres"),
   email: z

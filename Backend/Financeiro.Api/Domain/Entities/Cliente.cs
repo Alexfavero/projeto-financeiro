@@ -21,11 +21,9 @@ namespace Financeiro.Api.Domain.Entities
         [StringLength(200)]
         public string? Endereco { get; set; }
 
-        // propriedades de navegação
         public ICollection<ContaAReceber> ContasAReceber { get; set; } = new List<ContaAReceber>();
 
-        // Dono do registro (isolamento multiusuário). Preenchido automaticamente pelo
-        // AppDbContext a partir do usuário logado — nunca deve vir do corpo da requisição.
+        // preenchido pelo AppDbContext a partir do usuário logado, nunca vem do corpo da requisição
         public string UsuarioId { get; set; } = null!;
     }
 }

@@ -1,17 +1,10 @@
 import { addDiasISO } from "@/shared/utils/format";
 import type { ParcelaFormValues } from "./schema";
 
-/**
- * Gera `quantidade` parcelas a partir do valor total, espaçadas por
- * `intervaloDias` a partir de `primeiraData`.
- *
- * O valor é dividido em centavos pra evitar sobra de ponto flutuante. Como
- * a divisão nem sempre é exata, o resto (em centavos) é distribuído UM
- * CENTAVO DE CADA VEZ nas PRIMEIRAS parcelas — não tudo empilhado na
- * última (feedback do usuário em 21/08). Ex.: R$ 100,00 em 3 parcelas vira
- * 33,34 + 33,33 + 33,33 (o 1º centavo de resto vai pra 1ª parcela), e não
- * 33,33 + 33,33 + 33,34. A soma bate exatamente com o valor total, sempre.
- */
+// Divide em centavos pra não sobrar resto de ponto flutuante. Quando a
+// divisão não é exata, o resto vai 1 centavo pra cada uma das PRIMEIRAS
+// parcelas (não tudo empilhado na última). Ex: R$100 em 3x vira
+// 33,34 + 33,33 + 33,33. Soma sempre bate certo com o total.
 export function gerarParcelasAutomaticas(
   valorTotal: number,
   quantidade: number,

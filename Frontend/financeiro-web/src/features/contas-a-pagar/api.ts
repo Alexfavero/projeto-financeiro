@@ -35,11 +35,8 @@ export async function getContasAPagarPaged(
   return { items: response.data, pagination: lerPaginacao(response.headers["x-pagination"]) };
 }
 
-// Exclui a conta inteira (não uma parcela avulsa) — o backend já tem
-// ON DELETE CASCADE configurado entre Parcela e DocumentoFinanceiro, então
-// as parcelas somem junto, sem deixar a conta "furada". É o caminho pra
-// desfazer um lançamento errado por completo (ver EditarParcelaModal pra
-// corrigir só uma parcela, sem excluir a conta toda).
+// exclui a conta inteira, não uma parcela avulsa — backend tem ON DELETE CASCADE
+// entre Parcela e DocumentoFinanceiro, as parcelas somem junto
 export async function deleteContaAPagar(id: number): Promise<void> {
   await api.delete(`/ContasAPagar/${id}`);
 }

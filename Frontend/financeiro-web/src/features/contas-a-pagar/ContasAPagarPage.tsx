@@ -13,14 +13,8 @@ import { deleteContaAPagar, getContasAPagarPaged } from "./api";
 
 const TAMANHO_PAGINA = 10;
 
-/**
- * Listagem de Contas a Pagar. Sem criar (isso é a tela de Lançar Conta) e
- * sem editar linha a linha (reabrir uma conta com várias parcelas pra editar
- * é mais complexo do que vale a pena agora). O que existe além de listar é
- * excluir a conta inteira — o caminho certo pra desfazer um lançamento
- * errado por completo (as parcelas somem junto, via cascade no banco). Pra
- * corrigir só uma parcela isolada, o lugar é a tela de Parcelas (Editar).
- */
+// só lista + exclui a conta inteira (criar é na tela Lançar Conta; corrigir
+// uma parcela isolada é na tela de Parcelas — excluir aqui já derruba tudo via cascade)
 export function ContasAPagarPage() {
   const queryClient = useQueryClient();
   const [pagina, setPagina] = useState(1);
@@ -32,8 +26,7 @@ export function ContasAPagarPage() {
     queryFn: () => getContasAPagarPaged(pagina, TAMANHO_PAGINA, filtroCategoria === "" ? undefined : filtroCategoria),
   });
 
-  // Lista de fornecedores só pra resolver fornecedorId → nome na tabela — a
-  // listagem paginada de contas não traz o nome do fornecedor, só o id.
+  // a listagem paginada só traz fornecedorId, então busca a lista pra resolver o nome
   const fornecedoresQuery = useQuery({ queryKey: ["fornecedores-todos"], queryFn: listFornecedores });
 
   function nomeFornecedor(id?: number | null): string {

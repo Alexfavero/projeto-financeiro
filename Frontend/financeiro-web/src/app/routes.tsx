@@ -10,13 +10,6 @@ import { ContasAReceberPage } from "@/features/contas-a-receber/ContasAReceberPa
 import { RelatoriosPage } from "@/features/relatorios/RelatoriosPage";
 import { ProtectedRoute } from "@/shared/auth/ProtectedRoute";
 
-/**
- * Todas as telas do roadmap já têm implementação real: Clientes,
- * Fornecedores, Parcelas (listar + dar baixa + editar), Contas a
- * Pagar/Receber (listar + excluir) e agora Relatórios (5 relatórios em
- * abas, só leitura). Toda rota interna fica atrás de `ProtectedRoute`
- * (exige token salvo, senão manda pro login).
- */
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
   {

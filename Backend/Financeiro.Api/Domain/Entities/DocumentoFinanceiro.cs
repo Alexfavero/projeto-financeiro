@@ -13,9 +13,8 @@ namespace Financeiro.Api.Domain.Entities
         public decimal ValorTotal { get; set; }
         virtual public ICollection<Parcela> Parcelas { get; set; } = new List<Parcela>();
 
-        // Dono do registro (isolamento multiusuário). Como ContaAPagar e ContaAReceber
-        // herdam de DocumentoFinanceiro (TPH, mesma tabela), essa propriedade cobre as duas.
-        // Preenchido automaticamente pelo AppDbContext a partir do usuário logado.
+        // ContaAPagar e ContaAReceber herdam daqui (TPH, mesma tabela), então isso cobre as duas.
+        // Preenchido pelo AppDbContext a partir do usuário logado.
         public string UsuarioId { get; set; } = null!;
     }
 }

@@ -8,28 +8,18 @@ import {
   type ParcelaDTO,
 } from "@/types/dtos";
 
-/**
- * "Banco de dados" em memória usado pelo MSW.
- *
- * Existe só porque o banco MySQL de verdade está vazio (sem seed além do
- * schema) e o objetivo desta parte é conseguir usar o front-end inteiro sem
- * depender da API/banco rodando. Cada `arrays` abaixo é recriado do zero
- * toda vez que a página recarrega (sem persistência) — o que é o
- * comportamento certo pra um mock, não um bug.
- *
- * Usuário de demonstração para testar login sem precisar criar conta:
- *   usuário: demo   |   senha: demo1234
- *
- * Volume do seed (24/08, ampliado a pedido do usuário): 20 clientes, 20
- * fornecedores, 20 Contas a Pagar e 20 Contas a Receber (cada uma com 1 ou 2
- * parcelas) — o suficiente pra estourar a página 1 (tamanho 10) em toda
- * listagem paginada (Clientes, Fornecedores, Contas a Pagar, Contas a
- * Receber, aba "Todas" de Parcelas) e pra dar dado de verdade nos 5
- * relatórios. Os IDs do seed ficam sempre abaixo de 100 (documentos) / 1000
- * (parcelas) de propósito, pra nunca colidir com os IDs gerados em tempo de
- * execução (`proximoDocumentoId` etc., usados quando o próprio usuário
- * cria algo pela tela).
- */
+// "Banco de dados" em memória pro MSW. Existe pq o MySQL de verdade tá
+// vazio (só schema, sem seed) e a ideia é dar pra usar o front inteiro sem
+// precisar da API rodando. Os arrays são recriados do zero a cada reload
+// (sem persistência) — é assim mesmo, não é bug.
+//
+// login de teste: usuário demo / senha demo1234
+//
+// 20 de cada (clientes, fornecedores, contas a pagar/receber), o suficiente
+// pra estourar a página 1 (tamanho 10) em todas as listagens e dar dado de
+// verdade nos relatórios. IDs do seed ficam sempre < 100 (documentos) e
+// < 1000 (parcelas) de propósito, pra não colidir com os IDs gerados em
+// runtime (proximoDocumentoId etc).
 
 export interface MockUser {
   username: string;

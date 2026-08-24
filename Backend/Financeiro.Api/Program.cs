@@ -17,20 +17,13 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    // botão "Authorize" no Swagger UI, para colar o Bearer token e testar
-    // os endpoints protegidos com [Authorize] direto pela interface.
-    // A partir do Swashbuckle.AspNetCore v10 (Microsoft.OpenApi 2.x), os tipos
-    // saíram do namespace Microsoft.OpenApi.Models e foram pro Microsoft.OpenApi
-    // direto; o esquema certo agora é SecuritySchemeType.Http (não mais ApiKey +
-    // ParameterLocation.Header, que era o jeito da v6), e AddSecurityRequirement
-    // referencia o esquema por um delegate (document => ...) em vez do antigo
-    // OpenApiReference/ReferenceType.
+    // botão "Authorize" no Swagger UI pra colar o Bearer token e testar os endpoints
+    // protegidos direto pela interface. No Swashbuckle v10 os tipos mudaram de namespace
+    // (Microsoft.OpenApi.Models -> Microsoft.OpenApi) e o esquema virou SecuritySchemeType.Http
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Type = SecuritySchemeType.Http,
@@ -45,11 +38,10 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// necessário para o AppDbContext conseguir ler o usuário logado (isolamento multiusuário)
+// o AppDbContext precisa disso pra ler o usuário logado
 builder.Services.AddHttpContextAccessor();
 
-// CORS: só as origens do front-end (React) podem chamar a API a partir do navegador.
-// Lista configurável em appsettings, porque muda entre ambiente local e produção.
+// lista de origens permitidas vem do appsettings (muda entre local e produção)
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
     ?? Array.Empty<string>();
 
@@ -60,15 +52,13 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
-              // AllowAnyHeader() só libera o que o navegador pode ENVIAR; sem isso,
-              // o header de resposta X-Pagination (listagens paginadas) fica
-              // invisível pro JavaScript do front-end em requisição cross-origin.
+              // AllowAnyHeader só libera o que o navegador ENVIA; sem isso o header
+              // X-Pagination na resposta fica invisível pro front em cross-origin
               .WithExposedHeaders("X-Pagination");
     });
 });
 
-// Rate limiting: limite geral por IP para toda a API, e um limite mais apertado
-// só para os endpoints de autenticação (proteção contra força bruta no login).
+// limite geral por IP, e um mais apertado só pro login (proteção contra força bruta)
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -92,11 +82,9 @@ builder.Services.AddRateLimiter(options =>
             }));
 });
 
-// identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-// authentication + jwt
 var secretKey = builder.Configuration["JWT:SecretKey"]
     ?? throw new ArgumentException("Chave secreta do JWT não configurada!");
 
@@ -126,34 +114,24 @@ builder.Services.AddAuthentication(options =>
 string mySqlConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(mySqlConnection, ServerVersion.AutoDetect(mySqlConnection)));
-//Registro UnitOfWork
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-//Registro repositórios específicos
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
 builder.Services.AddScoped<IContaAPagarRepository, ContaAPagarRepository>();
 builder.Services.AddScoped<IContaAReceberRepository, ContaAReceberRepository>();
 builder.Services.AddScoped<IFornecedorRepository, FornecedorRepository>();
 builder.Services.AddScoped<IParcelaRepository, ParcelaRepository>();
 
-//Registro repositório genérico
 builder.Services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
 
-//Registro do serviço de token (JWT)
 builder.Services.AddScoped<ITokenService, TokenService>();
-
-//Registro do serviço de previsão de gastos e recebimentos
 builder.Services.AddScoped<IPrevisaoService, PrevisaoService>();
-
-//Registro do serviço de relatórios
 builder.Services.AddScoped<IRelatorioService, RelatorioService>();
 
-//Automapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

@@ -13,19 +13,13 @@ namespace Financeiro.Api.DTOs.Mappings
             CreateMap<DocumentoFinanceiro, DocumentoFinanceiroDTO>().ReverseMap();
             CreateMap<ContaAPagar, ContaAPagarDTO>().ReverseMap();
             CreateMap<Fornecedor, FornecedorDTO>().ReverseMap();
-            // Tipo/NomeContraparte não existem na entidade Parcela — são calculados
-            // aqui a partir do DocumentoFinanceiro pai (TPH). Só saem corretos quando
-            // o repositório incluiu essa navegação (ver comentário no ParcelaDTO);
-            // quando não foi incluída, DocumentoFinanceiro vem null e os dois campos
-            // caem no ramo `null` abaixo, em vez de mostrar um tipo errado.
+            // Tipo/NomeContraparte não existem na entidade, são calculados aqui a partir
+            // do DocumentoFinanceiro pai (TPH). Se a navegação não foi incluída no
+            // repositório, DocumentoFinanceiro vem null e cai no ramo null abaixo.
             //
-            // Usamos a sobrecarga de MapFrom que recebe um Func normal (não uma
-            // Expression<Func<...>>) de propósito: a versão com Expression é a que o
-            // `.MapFrom(src => src.Prop)` de costume usa, e o compilador C# não permite
-            // pattern matching com variável (`is Tipo variavel`) dentro de uma árvore de
-            // expressão — dá erro "An expression tree may not contain an 'is'
-            // pattern-matching operator" na hora de compilar. Como Func vira um delegate
-            // comum (não uma árvore de expressão), o pattern matching funciona normal.
+            // usa a sobrecarga de MapFrom com Func (não Expression<Func<...>>) de propósito:
+            // com Expression o `is Tipo variavel` não compila ("An expression tree may not
+            // contain an 'is' pattern-matching operator"); com Func é só um delegate normal.
             CreateMap<Parcela, ParcelaDTO>()
                 .ForMember(dest => dest.Tipo, opt => opt.MapFrom((src, dest, destMember, context) =>
                     src.DocumentoFinanceiro is ContaAPagar ? "APagar" :

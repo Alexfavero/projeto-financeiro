@@ -4,8 +4,8 @@ import { extractApiErrorMessage } from "@/lib/api";
 import { getInadimplencia } from "../api";
 import { AtrasoGrupoCard } from "../AtrasoGrupoCard";
 
-// Relatório 1: parcelas de Contas a Receber atrasadas, agrupadas por
-// cliente — a pergunta "quem me deve e há quanto tempo".
+// parcelas de Contas a Receber atrasadas, agrupadas por cliente — "quem me
+// deve e há quanto tempo"
 export function InadimplenciaTab() {
   const query = useQuery({ queryKey: ["relatorios", "inadimplencia"], queryFn: getInadimplencia });
   const itens = query.data ?? [];

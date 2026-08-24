@@ -12,11 +12,7 @@ import { deleteContaAReceber, getContasAReceberPaged } from "./api";
 
 const TAMANHO_PAGINA = 10;
 
-/**
- * Listagem de Contas a Receber — mesmo raciocínio de escopo da tela de
- * Contas a Pagar (ver comentário lá): sem criar, sem editar linha a linha,
- * só listar + excluir a conta inteira.
- */
+// mesmo escopo da tela de Contas a Pagar: só listar + excluir a conta inteira
 export function ContasAReceberPage() {
   const queryClient = useQueryClient();
   const [pagina, setPagina] = useState(1);
@@ -27,7 +23,7 @@ export function ContasAReceberPage() {
     queryFn: () => getContasAReceberPaged(pagina, TAMANHO_PAGINA),
   });
 
-  // Lista de clientes só pra resolver clienteId → nome na tabela.
+  // só pra resolver clienteId → nome na tabela
   const clientesQuery = useQuery({ queryKey: ["clientes-todos"], queryFn: listClientes });
 
   function nomeCliente(id: number): string {

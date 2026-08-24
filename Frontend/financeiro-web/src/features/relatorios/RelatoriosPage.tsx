@@ -17,16 +17,8 @@ const ABAS: { key: Aba; label: string }[] = [
   { key: "ranking", label: "Ranking" },
 ];
 
-/**
- * Os 5 relatórios do backend (RelatoriosController, 7 endpoints — Extrato e
- * Ranking têm uma variante cada pro lado Cliente/Fornecedor) reunidos numa
- * tela só, com abas — mesmo padrão de navegação já usado em Parcelas.
- * Só leitura: diferente de Parcelas e Contas a Pagar/Receber, aqui não tem
- * nenhuma ação (editar, dar baixa, excluir). Pra agir sobre algo visto aqui
- * (uma parcela atrasada, por exemplo), o caminho é ir pra tela
- * correspondente (Parcelas ou Contas a Pagar/Receber) — Relatórios é só
- * visão consolidada.
- */
+// só leitura — sem editar/dar baixa/excluir aqui. Pra agir sobre algo visto
+// num relatório, o caminho é ir pra tela correspondente (Parcelas etc)
 export function RelatoriosPage() {
   const [aba, setAba] = useState<Aba>("inadimplencia");
 

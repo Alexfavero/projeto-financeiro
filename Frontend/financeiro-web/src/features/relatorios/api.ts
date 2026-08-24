@@ -7,8 +7,7 @@ import type {
   RankingDTO,
 } from "@/types/dtos";
 
-// Os 7 endpoints reais de RelatoriosController.cs — todos [Authorize],
-// só leitura (nenhum POST/PUT/DELETE aqui).
+// endpoints de RelatoriosController.cs — todos [Authorize], só leitura
 
 export async function getInadimplencia(): Promise<InadimplenciaClienteDTO[]> {
   const { data } = await api.get<InadimplenciaClienteDTO[]>("/Relatorios/inadimplencia");

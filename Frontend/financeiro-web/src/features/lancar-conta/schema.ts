@@ -1,23 +1,11 @@
 import { z } from "zod";
 
-/**
- * Validação do formulário de Lançar Conta com Zod, usada pelo React Hook
- * Form via `zodResolver`. Os campos vêm do HTML como string (inputs de
- * número/data), por isso o `z.coerce.number()` — ele converte antes de
- * validar.
- *
- * Fluxo (revisado a partir do feedback do usuário em 21/08): o Valor Total
- * é digitado pelo usuário (é a fonte da verdade), e a soma das parcelas
- * precisa bater exatamente com esse valor — nem mais, nem menos — validado
- * pelo `.refine` no final de cada schema, que anexa o erro no campo
- * "parcelas". Se o valor total foi digitado errado, a correção é mudar o
- * campo Valor Total (e gerar as parcelas de novo), não forçar as parcelas
- * a compensar um total errado.
- */
+// z.coerce.number() pq os inputs vêm como string do HTML (number/date).
+// Valor Total é a fonte da verdade: a soma das parcelas tem que bater exato
+// com ele (validado no .refine de cada schema, erro cai no campo "parcelas").
 
-// Confere se o valor tem no máximo 2 casas decimais (dinheiro não tem
-// fração de centavo). Comparar via centavos arredondados evita falso
-// positivo por imprecisão de ponto flutuante (0.1 + 0.2 !== 0.3 em JS).
+// Confere se tem no máximo 2 casas decimais comparando em centavos
+// arredondados (evita erro de ponto flutuante tipo 0.1+0.2 !== 0.3).
 export function temNoMaximoDuasCasas(valor: number): boolean {
   return Math.abs(valor * 100 - Math.round(valor * 100)) < 1e-6;
 }
@@ -36,8 +24,7 @@ function somaParcelas(parcelas: ParcelaFormValues[]): number {
   return parcelas.reduce((soma, p) => soma + (Number(p.valor) || 0), 0);
 }
 
-// Pequena tolerância pra evitar falso-positivo por imprecisão de ponto flutuante
-// (ex.: 0.1 + 0.2 !== 0.3 em JS).
+// Tolerância pra imprecisão de ponto flutuante (0.1 + 0.2 !== 0.3 em JS).
 const TOLERANCIA = 0.005;
 
 export const contaAPagarSchema = z

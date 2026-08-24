@@ -1,9 +1,4 @@
-/**
- * Ícones inline em SVG (sem lib de ícones nova) — usados hoje só no botão de
- * alternar tema (Topbar) e no menu hambúrguer/fechar (Topbar/Sidebar, em
- * texto puro "☰"/"✕", que já bastam pra isso).
- */
-
+// svg inline pra não puxar lib de ícones só pra isso
 export function IconeSol({ className = "h-4 w-4" }: { className?: string }) {
   return (
     <svg

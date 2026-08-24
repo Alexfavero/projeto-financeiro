@@ -28,8 +28,7 @@ namespace Financeiro.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ContaAPagarDTO>>> GetPaged([FromQuery] Financeiro.Api.Pagination.ContaAPagarParameters parameters)
         {
-            // filtro opcional por categoria; OrderBy não foi implementado (registrado como
-            // decisão consciente em status_tcc.md — sem ganho claro sem front-end consumindo)
+            // filtro opcional por categoria
             System.Linq.Expressions.Expression<Func<ContaAPagar, bool>>? filtro = parameters.Categoria.HasValue
                 ? c => c.Categoria == parameters.Categoria.Value
                 : null;
@@ -70,7 +69,7 @@ namespace Financeiro.Api.Controllers
         {
             var conta = _mapper.Map<ContaAPagar>(contaDTO);
 
-            // validação de FK: se informar FornecedorId, garantir existência
+            // FornecedorId é opcional, mas se vier tem que existir
             if (conta.FornecedorId.HasValue)
             {
                 var fornecedor = await _uof.FornecedorRepository.GetAsync(f => f.FornecedorId == conta.FornecedorId.Value);
@@ -89,18 +88,15 @@ namespace Financeiro.Api.Controllers
         {
             if (id != contaDTO.DocumentoFinanceiroId) return BadRequest("IDs não conferem");
 
-            // buscar entidade rastreada
             var existing = await _uof.ContaAPagarRepository.GetTrackedAsync(c => c.DocumentoFinanceiroId == id);
             if (existing == null) return NotFound("Conta a pagar não encontrada");
 
-            // validação de FK
             if (contaDTO.FornecedorId.HasValue)
             {
                 var fornecedor = await _uof.FornecedorRepository.GetAsync(f => f.FornecedorId == contaDTO.FornecedorId.Value);
                 if (fornecedor == null) return BadRequest("Fornecedor não encontrado");
             }
 
-            // mapear valores do DTO sobre a entidade existente
             _mapper.Map(contaDTO, existing);
             _uof.ContaAPagarRepository.Update(existing);
             await _uof.CommitAsync();
@@ -111,14 +107,12 @@ namespace Financeiro.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            // obter entidade rastreada antes de remover
             var conta = await _uof.ContaAPagarRepository.GetTrackedAsync(c => c.DocumentoFinanceiroId == id);
             if (conta == null) return NotFound("Conta a pagar não encontrada");
 
             _uof.ContaAPagarRepository.Delete(conta);
             await _uof.CommitAsync();
 
-            // padronização: retorna 204 NoContent para deletes sem payload
             return NoContent();
         }
     }

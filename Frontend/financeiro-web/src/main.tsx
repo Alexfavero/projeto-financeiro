@@ -6,16 +6,10 @@ import App from "./App.tsx";
 import { queryClient } from "@/lib/queryClient";
 import { ThemeProvider } from "@/shared/theme/ThemeContext";
 
-/**
- * Liga o MSW (Mock Service Worker) antes de renderizar o app, quando
- * VITE_USE_MOCKS=true (padrão em .env.development). Ele intercepta as
- * chamadas do Axios no nível do navegador, então o resto do código (Axios,
- * TanStack Query, os componentes) não sabe e não precisa saber se está
- * conversando com o MSW ou com a API de verdade.
- *
- * Precisa ter rodado `npx msw init public --save` uma vez nesta pasta antes
- * (gera `public/mockServiceWorker.js` — ver README.md).
- */
+// intercepta as chamadas do Axios no nível do navegador, então o resto do
+// app nem sabe se tá falando com o MSW ou com a API real.
+// precisa ter rodado `npx msw init public --save` uma vez antes (gera
+// public/mockServiceWorker.js).
 async function enableMocking() {
   if (import.meta.env.VITE_USE_MOCKS !== "true") return;
 

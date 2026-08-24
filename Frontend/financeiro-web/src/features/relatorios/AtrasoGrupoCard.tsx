@@ -8,12 +8,8 @@ interface AtrasoGrupoCardProps {
   parcelas: ParcelaAtrasadaDTO[];
 }
 
-/**
- * Um grupo (cliente ou fornecedor) com as parcelas atrasadas dele. Mesma
- * forma nos dois relatórios que usam isso — Inadimplência (cliente) e
- * Contas a Pagar Atrasadas (fornecedor) — só muda o rótulo da entidade, daí
- * um componente compartilhado só.
- */
+// compartilhado entre Inadimplência (cliente) e Contas a Pagar Atrasadas
+// (fornecedor) — só muda o rótulo, a forma é a mesma
 export function AtrasoGrupoCard({ titulo, valorTotalAtrasado, parcelas }: AtrasoGrupoCardProps) {
   return (
     <div className="rounded-card border border-border bg-surface p-5">

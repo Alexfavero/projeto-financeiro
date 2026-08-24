@@ -8,9 +8,8 @@ import { getTopClientes, getTopFornecedores } from "../api";
 
 type Tipo = "clientes" | "fornecedores";
 
-// Relatório 5: quem mais pagou/foi pago — só entram entidades com valor > 0
-// (regra do backend), então uma lista vazia aqui é normal antes de qualquer
-// parcela ser dada baixa.
+// só entram entidades com valor > 0 (regra do backend) — lista vazia é
+// normal antes de qualquer parcela ser dada baixa
 export function RankingTab() {
   const [tipo, setTipo] = useState<Tipo>("clientes");
   const [quantidade, setQuantidade] = useState(10);

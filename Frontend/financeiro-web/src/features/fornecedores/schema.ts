@@ -1,7 +1,6 @@
 import { z } from "zod";
 
-// CNPJ armazenado sem pontuação (só dígitos), batendo com [StringLength(14)]
-// do FornecedorDTO.cs real — 14 é o tamanho de um CNPJ sem máscara.
+// CNPJ sem pontuação, só os 14 dígitos — bate com [StringLength(14)] do FornecedorDTO.cs
 export const fornecedorSchema = z.object({
   nome: z.string().min(1, "Informe o nome").max(100, "Máximo de 100 caracteres"),
   cnpj: z

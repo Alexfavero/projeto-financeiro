@@ -30,8 +30,7 @@ export async function getFornecedoresPaged(pageNumber: number, pageSize = 10): P
   return { items: response.data, pagination: lerPaginacao(response.headers["x-pagination"]) };
 }
 
-// Lista simples (até o máximo de 50 permitido pela API) usada no select da
-// tela de Lançar Conta.
+// select da tela Lançar Conta usa essa lista; API só permite pageSize até 50
 export async function listFornecedores(): Promise<FornecedorDTO[]> {
   const { items } = await getFornecedoresPaged(1, 50);
   return items;

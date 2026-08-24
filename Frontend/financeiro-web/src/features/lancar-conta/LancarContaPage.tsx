@@ -26,20 +26,11 @@ import {
   type ParcelaFormValues,
 } from "./schema";
 
-/**
- * Tela de Lançar Conta.
- *
- * Fluxo (revisado em 21/08 a partir do feedback do usuário — antes disso o
- * Valor Total era calculado sozinho a partir das parcelas; agora é o
- * contrário): o usuário digita o Valor Total primeiro. Pra uma parcela só,
- * edita direto na tabela de baixo. Pra várias, usa "Gerar parcelas
- * automaticamente" (quantidade + intervalo em dias) — isso abre uma tela de
- * revisão com as parcelas já calculadas (valor = total / quantidade, datas
- * espaçadas pelo intervalo), editáveis uma a uma, com a soma comparada ao
- * total em tempo real, e só deixa confirmar se não ultrapassar o total.
- * Depois de confirmado, as parcelas caem na tabela normal, onde ainda dá
- * pra ajustar/adicionar/remover manualmente antes de salvar.
- */
+// Fluxo: o valor total é digitado primeiro. Pra 1 parcela só, edita direto
+// na tabela. Pra várias, usa "gerar parcelas automaticamente" (abre modal
+// com valor = total/quantidade, datas espaçadas pelo intervalo) e só deixa
+// confirmar se a soma bater com o total. Depois ainda dá pra ajustar manual
+// na tabela antes de salvar.
 export function LancarContaPage() {
   const [tab, setTab] = useState<"pagar" | "receber">("pagar");
 

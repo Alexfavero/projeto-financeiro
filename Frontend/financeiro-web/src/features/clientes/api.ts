@@ -30,16 +30,14 @@ export async function getClientesPaged(pageNumber: number, pageSize = 10): Promi
   return { items: response.data, pagination: lerPaginacao(response.headers["x-pagination"]) };
 }
 
-// Lista simples (até o máximo de 50 permitido pela API) usada no select da
-// tela de Lançar Conta.
+// select da tela Lançar Conta usa essa lista; API só permite pageSize até 50
 export async function listClientes(): Promise<ClienteDTO[]> {
   const { items } = await getClientesPaged(1, 50);
   return items;
 }
 
-// Campos opcionais em branco viram `null`, não string vazia: o backend
-// valida `[EmailAddress]` mesmo em campo não obrigatório, e uma string vazia
-// reprova essa validação (só `null` é tratado como "não informado").
+// vazio vira null, não "": o backend valida [EmailAddress] mesmo com campo opcional,
+// e string vazia reprova essa validação — só null conta como "não informado"
 function paraDTO(id: number, dto: ClienteFormValues): ClienteDTO {
   return {
     clienteId: id,

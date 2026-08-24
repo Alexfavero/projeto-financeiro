@@ -2,12 +2,7 @@ import { useState, type ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 
-/**
- * Layout comum a toda tela interna. O estado do menu mobile mora aqui (não
- * dentro da Sidebar) porque tanto a Sidebar (o próprio menu) quanto a Topbar
- * (o botão ☰ que abre) precisam dele — os dois são irmãos, então o estado
- * sobe pro pai mais próximo dos dois.
- */
+// estado do menu mobile fica aqui pq Sidebar e Topbar são irmãos e os dois precisam dele
 export function AppLayout({
   title,
   children,

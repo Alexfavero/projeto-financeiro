@@ -71,10 +71,8 @@ namespace Financeiro.Api.Controllers
         [HttpPost]
         public async Task<ActionResult> Create(FornecedorDTO fornecedorDTO)
         {
-            // CNPJ é a identidade real de um fornecedor — não pode haver dois
-            // cadastros com o mesmo (GetByCnpjAsync já existe e é filtrado pelo
-            // isolamento multiusuário, então só compara contra os fornecedores
-            // do próprio usuário logado).
+            // CNPJ é a identidade do fornecedor, não pode duplicar (o filtro de
+            // multiusuário já limita essa busca aos fornecedores do usuário logado)
             var fornecedorExistente = await _uof.FornecedorRepository.GetByCnpjAsync(fornecedorDTO.CNPJ);
             if (fornecedorExistente != null)
             {
@@ -93,22 +91,19 @@ namespace Financeiro.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, FornecedorDTO fornecedorDTO)
         {
-            // validação de IDs (padronizada)
             if (id != fornecedorDTO.FornecedorId)
             {
                 return BadRequest("IDs não conferem");
             }
 
-            // buscar entidade rastreada para update seguro
             var existing = await _uof.FornecedorRepository.GetTrackedAsync(f => f.FornecedorId == id);
             if (existing == null)
             {
                 return NotFound("Fornecedor não encontrado");
             }
 
-            // mesma checagem de duplicidade do Create, mas ignorando o próprio
-            // registro (senão editar um fornecedor sem trocar o CNPJ acusaria
-            // conflito contra si mesmo).
+            // mesma checagem do Create, mas ignorando o próprio id (senão editar
+            // sem trocar o CNPJ ia acusar conflito contra si mesmo)
             var fornecedorComMesmoCnpj = await _uof.FornecedorRepository.GetByCnpjAsync(fornecedorDTO.CNPJ);
             if (fornecedorComMesmoCnpj != null && fornecedorComMesmoCnpj.FornecedorId != id)
             {
@@ -116,7 +111,6 @@ namespace Financeiro.Api.Controllers
                     new Response { Status = "Error", Message = "Já existe um fornecedor cadastrado com este CNPJ." });
             }
 
-            // mapear valores do DTO sobre a entidade existente (preserva navegações)
             _mapper.Map(fornecedorDTO, existing);
 
             _uof.FornecedorRepository.Update(existing);
@@ -128,7 +122,6 @@ namespace Financeiro.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            // obter entidade rastreada antes de remover
             var fornecedor = await _uof.FornecedorRepository.GetTrackedAsync(c => c.FornecedorId == id);
 
             if (fornecedor == null)
@@ -139,7 +132,6 @@ namespace Financeiro.Api.Controllers
             _uof.FornecedorRepository.Delete(fornecedor);
             await _uof.CommitAsync();
 
-            // padronização: retorna 204 NoContent para deletes sem payload
             return NoContent();
         }
     }

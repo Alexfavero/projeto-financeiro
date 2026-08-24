@@ -20,17 +20,11 @@ function temaPreferidoDoSistema(): Tema {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
-/**
- * Tema claro/escuro com toggle manual (botão na Topbar), que fica salvo no
- * localStorage e persiste entre sessões. Na primeira visita, sem nada salvo
- * ainda, usa a preferência do sistema operacional como ponto de partida —
- * depois disso, a escolha do usuário sempre tem prioridade.
- *
- * Funciona aplicando/removendo a classe `dark` no `<html>`, que é o gatilho
- * que o Tailwind (`darkMode: "class"`, em tailwind.config.js) e as variáveis
- * CSS (em index.css) observam. Nenhum componente precisa saber em qual tema
- * está — eles só usam as mesmas classes de sempre (bg-surface, text-ink…).
- */
+// aplica/remove a classe "dark" no <html>, que é o que o Tailwind
+// (darkMode: "class") e as variáveis CSS observam — os componentes não
+// precisam saber em qual tema estão, só usam as classes de sempre.
+// sem nada salvo, usa a preferência do SO; depois disso a escolha manual
+// sempre tem prioridade.
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [tema, setTema] = useState<Tema>(() => temaSalvo() ?? temaPreferidoDoSistema());
 

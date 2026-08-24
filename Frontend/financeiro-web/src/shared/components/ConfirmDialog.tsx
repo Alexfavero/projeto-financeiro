@@ -1,10 +1,6 @@
 import { Modal } from "./Modal";
 import { Button } from "./Button";
 
-/**
- * Diálogo de confirmação genérico (usado hoje pra excluir Cliente/
- * Fornecedor, e reutilizável nas próximas telas — Contas, Parcelas).
- */
 export function ConfirmDialog({
   open,
   title,

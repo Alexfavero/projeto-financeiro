@@ -8,10 +8,6 @@ import { formatBRL, hojeISO } from "@/shared/utils/format";
 import type { ParcelaDTO } from "@/types/dtos";
 import { darBaixa } from "./api";
 
-/**
- * Modal de "dar baixa" — marca uma parcela pendente/atrasada como paga.
- * Corresponde ao caso de uso "Registrar Pagamento de Parcela" da ERS.
- */
 export function DarBaixaModal({
   open,
   onClose,
@@ -24,8 +20,7 @@ export function DarBaixaModal({
   const queryClient = useQueryClient();
   const [dataPagamento, setDataPagamento] = useState(hojeISO());
 
-  // Toda vez que a modal abre, a data volta a sugerir "hoje" — evita reaproveitar
-  // uma data antiga deixada de uma baixa anterior.
+  // reseta pra "hoje" toda vez que abre, senão fica com a data da baixa anterior
   useEffect(() => {
     if (open) setDataPagamento(hojeISO());
   }, [open]);
@@ -33,9 +28,7 @@ export function DarBaixaModal({
   const mutation = useMutation({
     mutationFn: () => darBaixa(parcela!, dataPagamento),
     onSuccess: () => {
-      // Atualiza as 3 abas da tela de Parcelas, o card "Parcelas vencendo" do
-      // Painel e os totais de Previsto/Realizado (que mudam assim que uma
-      // parcela passa a Pago).
+      // invalida as abas de Parcelas + card do Painel + totais Previsto/Realizado
       queryClient.invalidateQueries({ queryKey: ["parcelas"] });
       queryClient.invalidateQueries({ queryKey: ["parcelas-periodo"] });
       queryClient.invalidateQueries({ queryKey: ["previsao"] });

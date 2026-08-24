@@ -26,9 +26,8 @@ namespace Financeiro.Api.Domain.Entities
         [ForeignKey("DocumentoFinanceiroId")]
         public virtual DocumentoFinanceiro DocumentoFinanceiro { get; set; } = null!;
 
-        // Dono do registro (isolamento multiusuário). Guardado também aqui, e não só no
-        // DocumentoFinanceiro pai, porque o ParcelaRepository tem consultas que acessam
-        // Parcelas diretamente (ex.: GetVencendoHojeAsync), sem passar pelo pai.
+        // guardado aqui também (não só no DocumentoFinanceiro pai) porque o ParcelaRepository
+        // tem consultas que acessam Parcelas direto (ex.: GetVencendoHojeAsync), sem passar pelo pai
         public string UsuarioId { get; set; } = null!;
     }
 }

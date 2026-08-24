@@ -17,14 +17,12 @@ namespace Financeiro.Api.Controllers
             _relatorioService = relatorioService;
         }
 
-        // GET: api/relatorios/inadimplencia
         [HttpGet("inadimplencia")]
         public async Task<ActionResult<IEnumerable<InadimplenciaClienteDTO>>> GetInadimplencia()
         {
             return Ok(await _relatorioService.ObterInadimplenciaAsync());
         }
 
-        // GET: api/relatorios/gastos-por-categoria?inicio=2026-08-01&fim=2026-08-31
         [HttpGet("gastos-por-categoria")]
         public async Task<ActionResult<IEnumerable<GastoPorCategoriaDTO>>> GetGastosPorCategoria([FromQuery] DateTime inicio, [FromQuery] DateTime fim)
         {
@@ -34,7 +32,6 @@ namespace Financeiro.Api.Controllers
             return Ok(await _relatorioService.ObterGastosPorCategoriaAsync(inicio, fim));
         }
 
-        // GET: api/relatorios/extrato/cliente/5
         [HttpGet("extrato/cliente/{clienteId}")]
         public async Task<ActionResult<ExtratoDTO>> GetExtratoCliente(int clienteId)
         {
@@ -44,7 +41,6 @@ namespace Financeiro.Api.Controllers
             return Ok(extrato);
         }
 
-        // GET: api/relatorios/extrato/fornecedor/5
         [HttpGet("extrato/fornecedor/{fornecedorId}")]
         public async Task<ActionResult<ExtratoDTO>> GetExtratoFornecedor(int fornecedorId)
         {
@@ -54,21 +50,18 @@ namespace Financeiro.Api.Controllers
             return Ok(extrato);
         }
 
-        // GET: api/relatorios/contas-a-pagar-atrasadas
         [HttpGet("contas-a-pagar-atrasadas")]
         public async Task<ActionResult<IEnumerable<ContaAtrasadaFornecedorDTO>>> GetContasAPagarAtrasadas()
         {
             return Ok(await _relatorioService.ObterContasAPagarAtrasadasAsync());
         }
 
-        // GET: api/relatorios/top-clientes?quantidade=10
         [HttpGet("top-clientes")]
         public async Task<ActionResult<IEnumerable<RankingDTO>>> GetTopClientes([FromQuery] int quantidade = 10)
         {
             return Ok(await _relatorioService.ObterTopClientesAsync(quantidade));
         }
 
-        // GET: api/relatorios/top-fornecedores?quantidade=10
         [HttpGet("top-fornecedores")]
         public async Task<ActionResult<IEnumerable<RankingDTO>>> GetTopFornecedores([FromQuery] int quantidade = 10)
         {

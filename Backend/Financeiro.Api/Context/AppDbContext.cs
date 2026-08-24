@@ -23,9 +23,8 @@ namespace Financeiro.Api.Context
         public DbSet<Parcela> Parcelas { get; set; }
         public DbSet<Fornecedor> Fornecedores { get; set; }
 
-        // Id do usuário logado, lido da claim NameIdentifier do JWT.
-        // Fica null fora de uma requisição HTTP autenticada (ex.: quando o dotnet ef
-        // usa este contexto em tempo de design para gerar migrations).
+        // vem da claim NameIdentifier do JWT; fica null fora de request autenticada
+        // (ex: dotnet ef usando o contexto em design time pra gerar migration)
         private string? UsuarioLogadoId =>
             _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -33,10 +32,8 @@ namespace Financeiro.Api.Context
         {
             base.OnModelCreating(modelBuilder);
 
-            // Isolamento multiusuário: cada usuário só enxerga os próprios registros.
-            // O EF Core aplica esse filtro automaticamente em toda consulta feita através
-            // do DbSet (Get, GetPaged, Include, etc.), então os repositórios não precisam
-            // repetir esse "Where" manualmente em cada método.
+            // filtro global de multiusuário: aplica em toda query via DbSet, então
+            // os repositórios não precisam repetir esse Where em cada método
             modelBuilder.Entity<Cliente>().HasQueryFilter(c => c.UsuarioId == UsuarioLogadoId);
             modelBuilder.Entity<Fornecedor>().HasQueryFilter(f => f.UsuarioId == UsuarioLogadoId);
             modelBuilder.Entity<DocumentoFinanceiro>().HasQueryFilter(d => d.UsuarioId == UsuarioLogadoId);
@@ -55,9 +52,8 @@ namespace Financeiro.Api.Context
             return base.SaveChanges();
         }
 
-        // Preenche o dono de todo registro novo com o usuário logado, ignorando qualquer
-        // valor que porventura viesse do corpo da requisição — o cliente da API nunca
-        // escolhe o dono, quem decide é o token de quem está autenticado.
+        // seta o dono de todo registro novo com o usuário do token, ignorando
+        // qualquer UsuarioId que venha no corpo da requisição
         private void PreencherUsuarioId()
         {
             var usuarioId = UsuarioLogadoId;

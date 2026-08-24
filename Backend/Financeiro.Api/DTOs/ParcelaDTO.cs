@@ -25,11 +25,9 @@ namespace Financeiro.Api.DTOs
 
         public int DocumentoFinanceiroId { get; set; }
 
-        // Calculados a partir do DocumentoFinanceiro pai (TPH) — não têm coluna
-        // própria no banco. Só vêm preenchidos nas listagens que a tela de
-        // Parcelas usa (Atrasadas, Período e a listagem paginada), onde o
-        // repositório inclui a navegação necessária; nos demais endpoints
-        // (Get por id, resposta do PUT) vêm null.
+        // calculados a partir do DocumentoFinanceiro pai (TPH), não têm coluna própria.
+        // só vêm preenchidos onde o repositório inclui essa navegação (listagens de
+        // Atrasadas/Período/paginada); no Get por id e no PUT vêm null
         public string? Tipo { get; set; } // "APagar" ou "AReceber"
         public string? NomeContraparte { get; set; } // nome do Fornecedor (a pagar) ou Cliente (a receber)
     }

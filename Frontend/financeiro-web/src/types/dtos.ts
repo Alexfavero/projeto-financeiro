@@ -1,21 +1,14 @@
-/**
- * Tipos espelhando os DTOs do backend (Financeiro.Api).
- *
- * Conferidos campo a campo contra o código C# real em
- * `Backend/Financeiro.Api/DTOs/*.cs` e `Domain/Enums/*.cs` (21/08) — a
- * ressalva que existia na Parte 1 ("escrito de memória, não conferido")
- * não vale mais para este arquivo.
- *
- * Duas coisas específicas do backend que valem lembrar:
- * - O ASP.NET Core usa camelCase por padrão no JSON (System.Text.Json),
- *   então "ClienteId" (C#) vira "clienteId" (JSON/TS) — os nomes abaixo já
- *   seguem esse padrão.
- * - Os enums (CategoriaGasto, StatusPagamento) NÃO têm um conversor pra
- *   string configurado no Program.cs, então trafegam como número mesmo
- *   (ex.: Categoria = 1), não como "Mercadoria". Por isso são tipados aqui
- *   como `number`, com um mapa separado (`CATEGORIA_GASTO_LABELS` etc.)
- *   pra exibição.
- */
+// tipos espelhando os DTOs do backend (Financeiro.Api), conferidos campo a
+// campo contra o C# real em Backend/Financeiro.Api/DTOs/*.cs e
+// Domain/Enums/*.cs.
+//
+// duas coisas do backend que valem lembrar:
+// - ASP.NET Core usa camelCase por padrão no JSON (System.Text.Json), então
+//   "ClienteId" (C#) vira "clienteId" aqui.
+// - os enums (CategoriaGasto, StatusPagamento) não têm conversor pra string
+//   no Program.cs, então trafegam como número (Categoria = 1, não
+//   "Mercadoria"). por isso são tipados como number, com um mapa separado
+//   (CATEGORIA_GASTO_LABELS etc.) pra exibição.
 
 // ---- Enums (valores numéricos, iguais ao C#) ----
 
@@ -98,9 +91,9 @@ export interface ContaAReceberDTO extends DocumentoFinanceiroDTO {
 
 // ---- Previsão de Gastos e Recebimentos ----
 
-// Um bloco de totais — usado tanto pra "Previsto" quanto pra "Realizado".
-// Importante: NÃO é saldo de caixa acumulado, é só "a receber menos a
-// pagar" dentro do período consultado (decisão de escopo de 19/08).
+// bloco de totais, usado tanto pra "Previsto" quanto pra "Realizado".
+// não é saldo de caixa acumulado, é só "a receber menos a pagar" dentro
+// do período consultado.
 export interface ResumoDTO {
   totalAReceber: number;
   totalAPagar: number;
@@ -126,9 +119,9 @@ export interface PaginationMetadata {
 }
 
 // ---- Relatórios ----
-// Conferidos contra `DTOs/RelatorioDTOs.cs` e `Services/Implementations/RelatorioService.cs`
-// reais (24/08) — os comentários abaixo citam a regra de negócio exata usada
-// no backend, pra quem for ler/mexer no mock saber o que reproduzir.
+// conferidos contra DTOs/RelatorioDTOs.cs e RelatorioService.cs reais — os
+// comentários abaixo citam a regra de negócio exata do backend, pra quem
+// for mexer no mock saber o que reproduzir.
 
 // Usada tanto na Inadimplência (relatório 1) quanto em Contas a Pagar
 // Atrasadas (relatório 4) — mesma forma dos dois lados.

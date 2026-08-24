@@ -8,12 +8,10 @@ namespace Financeiro.Api.Repositories.Interfaces
         Task<ContaAPagar?> GetContaCompletaAsync(int id);
         Task<IEnumerable<ContaAPagar>> GetByCategoriaAsync(CategoriaGasto categoria);
 
-        // Para os relatórios de gastos por categoria, contas a pagar atrasadas e ranking
-        // de fornecedores: traz tudo com Fornecedor e Parcelas incluídos, e o filtro/
-        // agrupamento por relatório fica no RelatorioService.
+        // usado nos relatórios de gastos, contas atrasadas e ranking de fornecedores:
+        // já traz Fornecedor e Parcelas incluídos, o filtro/agrupamento fica no RelatorioService
         Task<IEnumerable<ContaAPagar>> GetTodasComParcelasAsync();
 
-        // Para o extrato de um fornecedor específico.
         Task<IEnumerable<ContaAPagar>> GetPorFornecedorAsync(int fornecedorId);
     }
 }

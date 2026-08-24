@@ -10,13 +10,9 @@ import { editarParcela, getContaPorParcela } from "./api";
 
 const TOLERANCIA = 0.005;
 
-/**
- * Corrige um lançamento com dado errado numa única parcela (valor ou data),
- * sem precisar excluir e relançar a conta inteira. Não bloqueia se a edição
- * desbalancear a soma das parcelas em relação ao valor total — só avisa: a
- * correção manual é assumida como intencional (quem decide se está certo é
- * quem está editando).
- */
+// corrige valor/data de uma parcela sem precisar excluir e relançar a conta
+// toda. não bloqueia se isso desbalancear a soma vs valor total, só avisa —
+// assume que quem tá editando sabe o que tá fazendo
 export function EditarParcelaModal({
   open,
   onClose,

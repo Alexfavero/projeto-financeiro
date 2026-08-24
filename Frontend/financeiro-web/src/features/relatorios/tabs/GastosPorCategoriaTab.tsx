@@ -10,11 +10,9 @@ import { getGastosPorCategoria } from "../api";
 const inicioMesPadrao = primeiroDiaMesISO();
 const fimMesPadrao = ultimoDiaMesISO();
 
-// Relatório 2: gastos já pagos (não previstos) no período, agrupados por
-// categoria — mês corrente por padrão, com filtro de data pra outros
-// períodos. Sem gráfico de biblioteca externa (Recharts, cogitado na
-// arquitetura original) pra não introduzir uma dependência nova só pra 4
-// categorias — uma barra de progresso simples (%  do maior valor) resolve.
+// gastos já pagos (não previstos) no período, agrupados por categoria.
+// sem Recharts aqui — só 4 categorias, uma barra de progresso (% do maior
+// valor) já resolve sem precisar de gráfico de verdade
 export function GastosPorCategoriaTab() {
   const [inicio, setInicio] = useState(inicioMesPadrao);
   const [fim, setFim] = useState(fimMesPadrao);

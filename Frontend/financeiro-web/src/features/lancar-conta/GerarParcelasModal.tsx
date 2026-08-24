@@ -6,16 +6,8 @@ import { temNoMaximoDuasCasas, type ParcelaFormValues } from "./schema";
 
 const TOLERANCIA = 0.005;
 
-/**
- * Tela de revisão que abre depois de "Gerar parcelas automaticamente":
- * mostra as parcelas calculadas (valor = total / quantidade, datas
- * espaçadas pelo intervalo escolhido), dá pra editar valor/data de cada
- * uma ou remover, mostra a soma em tempo real comparada ao valor total, e
- * só deixa confirmar se a soma bater exatamente com o total — nem mais,
- * nem menos. Se o total foi digitado errado, o certo é fechar, corrigir o
- * Valor Total na tela de trás e gerar de novo — não forçar as parcelas a
- * compensar um total errado.
- */
+// só deixa confirmar se a soma das parcelas bater exatamente com o valor total;
+// se o total tiver errado, o certo é fechar e corrigir na tela de trás, não forçar as parcelas
 export function GerarParcelasModal({
   open,
   onClose,
@@ -31,7 +23,6 @@ export function GerarParcelasModal({
 }) {
   const [draft, setDraft] = useState<ParcelaFormValues[]>(initialParcelas);
 
-  // Recarrega o rascunho toda vez que a modal é reaberta com uma nova geração.
   useEffect(() => {
     if (open) setDraft(initialParcelas);
     // eslint-disable-next-line react-hooks/exhaustive-deps
