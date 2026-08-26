@@ -23,7 +23,7 @@ namespace Financeiro.Api.DTOs.Mappings
                     null))
                 .ForMember(dest => dest.NomeContraparte, opt => opt.MapFrom((src, dest, destMember, context) =>
                     src.DocumentoFinanceiro is ContaAPagar contaAPagar ? (contaAPagar.Fornecedor != null ? contaAPagar.Fornecedor.Nome : null) :
-                    src.DocumentoFinanceiro is ContaAReceber contaAReceber ? contaAReceber.Cliente.Nome :
+                    src.DocumentoFinanceiro is ContaAReceber contaAReceber ? (contaAReceber.Cliente != null ? contaAReceber.Cliente.Nome : null) :
                     null))
                 .ReverseMap();
         }
