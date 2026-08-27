@@ -244,12 +244,57 @@ function PastilhaTotal({ rotulo, valor, cor }: { rotulo: string; valor: number; 
   );
 }
 
+// painel de barras "A Receber x A Pagar" reduzido, usado só na visão lado a
+// lado de telas grandes (um pro modo Realizado, outro pro Previsto) — o
+// gráfico principal (maior, usado no mobile com o botão de alternar modo)
+// continua sendo montado direto no corpo do componente, sem passar por aqui
+function PainelBarrasModo({ titulo, dados, mensagemVazia }: { titulo: string; dados: Bucket[]; mensagemVazia: string }) {
+  return (
+    <div>
+      <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink-secondary">{titulo}</div>
+      {dados.length === 0 ? (
+        <p className="text-sm text-ink-secondary">{mensagemVazia}</p>
+      ) : (
+        <div className="h-[240px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={dados} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--color-border))" />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: "rgb(var(--color-ink-secondary))" }} />
+              <YAxis
+                tick={{ fontSize: 10, fill: "rgb(var(--color-ink-secondary))" }}
+                tickFormatter={formatarEixoY}
+                width={36}
+              />
+              <Tooltip
+                formatter={(valor: number) => formatBRL(valor)}
+                contentStyle={{
+                  backgroundColor: "rgb(var(--color-surface))",
+                  border: "1px solid rgb(var(--color-border))",
+                  borderRadius: 8,
+                  fontSize: 12,
+                }}
+              />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
+              <Bar dataKey="aReceber" name="A Receber" fill="rgb(var(--color-good))" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="aPagar" name="A Pagar" fill="rgb(var(--color-critical))" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // duas escolhas independentes: escala (mensal/anual/tudo) e modo
 // (realizado x previsto). Dentro de "mensal" ainda tem o seletor de detalhe
 // de um mês específico, que troca pra barra por dia com os dois modos
 // empilhados juntos (por isso os botões de modo somem nesse estado).
 // busca o histórico inteiro de uma vez e agrupa tudo no front, já que o
 // backend não tem endpoint de série temporal, só /Previsao (total por período)
+//
+// Em telas grandes (lg+), Realizado e Previsto aparecem lado a lado ao
+// mesmo tempo (sem precisar alternar) — o botão de modo só existe pra
+// controlar o gráfico único do mobile, onde não cabem os dois juntos.
 export function HistoricoChart() {
   const [escala, setEscala] = useState<Escala>("mensal");
   const [modo, setModo] = useState<ModoDado>("realizado");
@@ -273,6 +318,17 @@ export function HistoricoChart() {
     [query.data, escala, modo, detalheAtivo],
   );
 
+  // mesmos buckets do gráfico único acima, mas sempre calculados pros dois
+  // modos — usados só na visão lado a lado de telas grandes
+  const dadosRealizado = useMemo(
+    () => (detalheAtivo ? [] : construirBuckets(query.data ?? [], escala, "realizado")),
+    [query.data, escala, detalheAtivo],
+  );
+  const dadosPrevisto = useMemo(
+    () => (detalheAtivo ? [] : construirBuckets(query.data ?? [], escala, "previsto")),
+    [query.data, escala, detalheAtivo],
+  );
+
   const dadosDiarios = useMemo(
     () => (detalheAtivo ? construirBucketsDiarios(query.data ?? [], mesDetalhe) : []),
     [query.data, detalheAtivo, mesDetalhe],
@@ -284,8 +340,24 @@ export function HistoricoChart() {
 
   const totais = useMemo(() => {
     if (detalheAtivo) return temDadoDiario ? totaisDosBucketsDiarios(dadosDiarios) : null;
-    return dadosGerais.length > 0 ? construirTotaisGerais(query.data ?? [], janela.chaves, janela.porMes) : null;
-  }, [detalheAtivo, temDadoDiario, dadosDiarios, dadosGerais, query.data, janela]);
+    if (dadosGerais.length > 0) return construirTotaisGerais(query.data ?? [], janela.chaves, janela.porMes);
+    // o modo atual (usado no gráfico único do mobile) não tem dado, mas o
+    // outro pode ter (ex: ninguém deu baixa em nada ainda, só tem previsto)
+    // — usa a janela do que tiver dado, pra não esconder o resumo à toa nos
+    // painéis lado a lado de telas grandes
+    if (dadosRealizado.length > 0) {
+      const janelaRealizado = obterJanela(query.data ?? [], escala, "realizado");
+      return construirTotaisGerais(query.data ?? [], janelaRealizado.chaves, janelaRealizado.porMes);
+    }
+    if (dadosPrevisto.length > 0) {
+      const janelaPrevisto = obterJanela(query.data ?? [], escala, "previsto");
+      return construirTotaisGerais(query.data ?? [], janelaPrevisto.chaves, janelaPrevisto.porMes);
+    }
+    return null;
+  }, [detalheAtivo, temDadoDiario, dadosDiarios, dadosGerais, dadosRealizado, dadosPrevisto, query.data, janela, escala]);
+
+  const mensagemVaziaRealizado = "Sem dados suficientes — dê baixa em alguma parcela pra ver o histórico de pagamentos.";
+  const mensagemVaziaPrevisto = "Sem dados suficientes pra montar o gráfico ainda.";
 
   return (
     <Card title="A Receber x A Pagar">
@@ -321,8 +393,10 @@ export function HistoricoChart() {
           )}
         </div>
 
+        {/* Só no mobile: em telas grandes os dois modos aparecem juntos,
+            lado a lado, sem precisar desse botão */}
         {!detalheAtivo && (
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5 lg:hidden">
             <Button
               variant={modo === "realizado" ? "primary" : "secondary"}
               size="sm"
@@ -352,7 +426,7 @@ export function HistoricoChart() {
       {query.isError && <p className="text-sm text-critical">Não foi possível carregar o histórico.</p>}
 
       {!query.isLoading && !query.isError && !detalheAtivo && dadosGerais.length === 0 && (
-        <p className="text-sm text-ink-secondary">
+        <p className="text-sm text-ink-secondary lg:hidden">
           Sem dados suficientes pra montar o gráfico ainda
           {modo === "realizado" ? " — dê baixa em alguma parcela pra ver o histórico de pagamentos." : "."}
         </p>
@@ -372,8 +446,9 @@ export function HistoricoChart() {
         </div>
       )}
 
+      {/* Mobile: um gráfico só, controlado pelo botão Realizado/Previsto acima */}
       {!detalheAtivo && dadosGerais.length > 0 && (
-        <div className="h-[280px] w-full sm:h-[320px]">
+        <div className="h-[280px] w-full sm:h-[320px] lg:hidden">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={dadosGerais} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--color-border))" />
@@ -397,6 +472,14 @@ export function HistoricoChart() {
               <Bar dataKey="aPagar" name="A Pagar" fill="rgb(var(--color-critical))" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Telas grandes: Realizado e Previsto lado a lado, sempre visíveis */}
+      {!detalheAtivo && (
+        <div className="hidden lg:grid lg:grid-cols-2 lg:gap-5">
+          <PainelBarrasModo titulo="Já pago/recebido" dados={dadosRealizado} mensagemVazia={mensagemVaziaRealizado} />
+          <PainelBarrasModo titulo="Previsto" dados={dadosPrevisto} mensagemVazia={mensagemVaziaPrevisto} />
         </div>
       )}
 

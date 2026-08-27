@@ -8,6 +8,7 @@ import { STATUS_PAGAMENTO_LABELS, type StatusPagamento } from "@/types/dtos";
 import { formatBRL, formatData, primeiroDiaMesISO, ultimoDiaMesISO, dataISOMaisDias, hojeISO } from "@/shared/utils/format";
 import { getParcelasPeriodo, getPrevisaoPeriodo } from "./api";
 import { HistoricoChart } from "./HistoricoChart";
+import { SaldoAcumuladoChart } from "./SaldoAcumuladoChart";
 
 const inicioMes = primeiroDiaMesISO();
 const fimMes = ultimoDiaMesISO();
@@ -32,10 +33,12 @@ export function PainelPage() {
 
   const parcelasQuery = useQuery({
     queryKey: ["parcelas-periodo", hoje, daquiA14Dias],
-    queryFn: () => getParcelasPeriodo(hoje, daquiA14Dias),
+    // excluirPagas: aqui é só "o que ainda falta pagar/receber nos
+    // próximos 14 dias" — parcela já baixada não faz sentido aparecer
+    queryFn: () => getParcelasPeriodo(hoje, daquiA14Dias, true),
   });
 
-  const parcelasVencendo = (parcelasQuery.data ?? []).slice(0, 5);
+  const parcelasVencendo = parcelasQuery.data ?? [];
 
   return (
     <AppLayout title="Painel — Previsão Financeira">
@@ -78,9 +81,13 @@ export function PainelPage() {
         </Card>
       </div>
       <p className="mb-5 text-xs text-ink-secondary">
-        Os três cards acima são sempre do mês atual, independente do que estiver selecionado no gráfico abaixo — use o
-        gráfico pra ver outros meses, anos ou o histórico completo.
+        Os três cards acima são sempre do mês atual, independente do que estiver selecionado nos gráficos abaixo —
+        use os gráficos pra ver outros meses, anos ou o histórico completo.
       </p>
+
+      <div className="mb-5">
+        <SaldoAcumuladoChart />
+      </div>
 
       <div className="mb-5">
         <HistoricoChart />
@@ -96,10 +103,13 @@ export function PainelPage() {
             <p className="text-sm text-ink-secondary">Nenhuma parcela vencendo nos próximos 14 dias.</p>
           )}
           {parcelasVencendo.length > 0 && (
-            <div className="overflow-x-auto">
+            // max-h + overflow-y: a área do card fica do mesmo tamanho de
+            // sempre (cabiam ~3 linhas antes) mesmo quando vêm mais
+            // parcelas — o cabeçalho fica fixo (sticky) enquanto rola
+            <div className="max-h-[230px] overflow-auto">
               <table className="w-full min-w-[560px] text-sm">
               <thead>
-                <tr className="border-b border-border text-left text-[11.5px] uppercase tracking-wide text-ink-secondary">
+                <tr className="sticky top-0 border-b border-border bg-surface text-left text-[11.5px] uppercase tracking-wide text-ink-secondary">
                   <th className="pb-2">Documento</th>
                   <th className="pb-2">Valor</th>
                   <th className="pb-2">Vencimento</th>

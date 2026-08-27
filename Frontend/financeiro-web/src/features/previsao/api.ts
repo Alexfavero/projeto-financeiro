@@ -6,8 +6,10 @@ export async function getPrevisaoPeriodo(inicio: string, fim: string): Promise<P
   return data;
 }
 
-export async function getParcelasPeriodo(inicio: string, fim: string): Promise<ParcelaDTO[]> {
-  const { data } = await api.get<ParcelaDTO[]>("/Parcelas/periodo", { params: { inicio, fim } });
+export async function getParcelasPeriodo(inicio: string, fim: string, excluirPagas?: boolean): Promise<ParcelaDTO[]> {
+  const params: Record<string, string | boolean> = { inicio, fim };
+  if (excluirPagas) params.excluirPagas = true;
+  const { data } = await api.get<ParcelaDTO[]>("/Parcelas/periodo", { params });
   return data;
 }
 
