@@ -36,23 +36,51 @@ namespace Financeiro.Api.Repositories.Implementations
                 .Where(p => p.DataVencimento < DateTime.Now && p.Status == StatusPagamento.Pendente)
                 .ToListAsync();
         }
-        public async Task<IEnumerable<Parcela>> GetPorPeriodoAsync(DateTime inicio, DateTime fim)
+        public async Task<IEnumerable<Parcela>> GetPorPeriodoAsync(DateTime inicio, DateTime fim, bool excluirPagas = false)
         {
-            return await ComContraparte()
-                .Where(p => p.DataVencimento.Date >= inicio.Date
-                       && p.DataVencimento.Date <= fim.Date)
-                .OrderBy(p => p.DataVencimento)
-                .ToListAsync();
+            IQueryable<Parcela> source = ComContraparte()
+                .Where(p => p.DataVencimento.Date >= inicio.Date && p.DataVencimento.Date <= fim.Date);
+
+            if (excluirPagas)
+                source = source.Where(p => p.Status != StatusPagamento.Pago);
+
+            return await source.OrderBy(p => p.DataVencimento).ToListAsync();
+        }
+
+        // aba "Historico": parcela ja paga, filtrada pela DataPagamento (nao a
+        // DataVencimento) - "o que foi baixado nesse periodo"
+        public async Task<IEnumerable<Parcela>> GetPagasPorPeriodoAsync(DateTime inicio, DateTime fim, string? tipo = null)
+        {
+            IQueryable<Parcela> source = ComContraparte()
+                .Where(p => p.Status == StatusPagamento.Pago
+                       && p.DataPagamento.HasValue
+                       && p.DataPagamento.Value.Date >= inicio.Date
+                       && p.DataPagamento.Value.Date <= fim.Date);
+
+            if (tipo == "APagar")
+                source = source.Where(p => p.DocumentoFinanceiro is ContaAPagar);
+            else if (tipo == "AReceber")
+                source = source.Where(p => p.DocumentoFinanceiro is ContaAReceber);
+
+            return await source.OrderByDescending(p => p.DataPagamento).ToListAsync();
         }
 
         // usado na aba "Todas" da tela de Parcelas: igual ao GetPagedAsync genérico,
         // mas já com a navegação incluída pra vir com Tipo/NomeContraparte preenchidos
-        public async Task<Financeiro.Api.Pagination.PagedList<Parcela>> GetPagedComContraparteAsync(int pageNumber, int pageSize, StatusPagamento? status = null)
+        public async Task<Financeiro.Api.Pagination.PagedList<Parcela>> GetPagedComContraparteAsync(int pageNumber, int pageSize, StatusPagamento? status = null, string? tipo = null, bool excluirPagas = false)
         {
             IQueryable<Parcela> source = ComContraparte().AsNoTracking();
 
             if (status.HasValue)
                 source = source.Where(p => p.Status == status.Value);
+
+            if (excluirPagas)
+                source = source.Where(p => p.Status != StatusPagamento.Pago);
+
+            if (tipo == "APagar")
+                source = source.Where(p => p.DocumentoFinanceiro is ContaAPagar);
+            else if (tipo == "AReceber")
+                source = source.Where(p => p.DocumentoFinanceiro is ContaAReceber);
 
             return await Financeiro.Api.Pagination.PagedList<Parcela>.ToPagedListAsync(source, pageNumber, pageSize);
         }

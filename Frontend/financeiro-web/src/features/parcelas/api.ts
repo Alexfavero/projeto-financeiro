@@ -35,9 +35,13 @@ export async function getParcelasPaged(
   pageNumber: number,
   pageSize = 10,
   status?: StatusPagamento,
+  tipo?: "APagar" | "AReceber",
+  excluirPagas?: boolean,
 ): Promise<ParcelasPagedResult> {
-  const params: Record<string, number> = { pageNumber, pageSize };
+  const params: Record<string, number | string | boolean> = { pageNumber, pageSize };
   if (status != null) params.status = status;
+  if (tipo) params.tipo = tipo;
+  if (excluirPagas) params.excluirPagas = true;
   const response = await api.get<ParcelaDTO[]>("/Parcelas", { params });
   return { items: response.data, pagination: lerPaginacao(response.headers["x-pagination"]) };
 }
@@ -49,8 +53,21 @@ export async function getParcelasAtrasadas(): Promise<ParcelaDTO[]> {
 }
 
 // Aba "Esta semana" (e também usado no Painel) — parcelas com vencimento no intervalo.
-export async function getParcelasPorPeriodo(inicio: string, fim: string): Promise<ParcelaDTO[]> {
-  const { data } = await api.get<ParcelaDTO[]>("/Parcelas/periodo", { params: { inicio, fim } });
+// excluirPagas só é usado pela tela de Parcelas (o Painel chama sem passar isso,
+// porque precisa ver parcela já paga na lista de "vencendo em breve").
+export async function getParcelasPorPeriodo(inicio: string, fim: string, excluirPagas?: boolean): Promise<ParcelaDTO[]> {
+  const params: Record<string, string | boolean> = { inicio, fim };
+  if (excluirPagas) params.excluirPagas = true;
+  const { data } = await api.get<ParcelaDTO[]>("/Parcelas/periodo", { params });
+  return data;
+}
+
+// Aba "Histórico" — parcelas já pagas/recebidas, filtradas pela data em que foram
+// baixadas (não a data de vencimento).
+export async function getParcelasPagas(inicio: string, fim: string, tipo?: "APagar" | "AReceber"): Promise<ParcelaDTO[]> {
+  const params: Record<string, string> = { inicio, fim };
+  if (tipo) params.tipo = tipo;
+  const { data } = await api.get<ParcelaDTO[]>("/Parcelas/pagas", { params });
   return data;
 }
 

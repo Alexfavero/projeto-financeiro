@@ -38,9 +38,16 @@ namespace Financeiro.Api.Controllers
         }
 
         [HttpGet("periodo")]
-        public async Task<ActionResult<IEnumerable<ParcelaDTO>>> GetPorPeriodo([FromQuery] DateTime inicio, [FromQuery] DateTime fim)
+        public async Task<ActionResult<IEnumerable<ParcelaDTO>>> GetPorPeriodo([FromQuery] DateTime inicio, [FromQuery] DateTime fim, [FromQuery] bool excluirPagas = false)
         {
-            var parcelas = await _uof.ParcelaRepository.GetPorPeriodoAsync(inicio, fim);
+            var parcelas = await _uof.ParcelaRepository.GetPorPeriodoAsync(inicio, fim, excluirPagas);
+            return Ok(_mapper.Map<IEnumerable<ParcelaDTO>>(parcelas));
+        }
+
+        [HttpGet("pagas")]
+        public async Task<ActionResult<IEnumerable<ParcelaDTO>>> GetPagas([FromQuery] DateTime inicio, [FromQuery] DateTime fim, [FromQuery] string? tipo = null)
+        {
+            var parcelas = await _uof.ParcelaRepository.GetPagasPorPeriodoAsync(inicio, fim, tipo);
             return Ok(_mapper.Map<IEnumerable<ParcelaDTO>>(parcelas));
         }
 
@@ -49,7 +56,7 @@ namespace Financeiro.Api.Controllers
         {
             // usa a versão com contraparte (não o GetPagedAsync genérico) pq a tela
             // de Parcelas precisa vir com Tipo/NomeContraparte junto
-            var paged = await _uof.ParcelaRepository.GetPagedComContraparteAsync(parameters.PageNumber, parameters.PageSize, parameters.Status);
+            var paged = await _uof.ParcelaRepository.GetPagedComContraparteAsync(parameters.PageNumber, parameters.PageSize, parameters.Status, parameters.Tipo, parameters.ExcluirPagas);
             var paginationMetadata = new
             {
                 currentPage = paged.CurrentPage,

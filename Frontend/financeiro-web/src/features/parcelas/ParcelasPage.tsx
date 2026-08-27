@@ -5,9 +5,9 @@ import { Card } from "@/shared/components/Card";
 import { Badge } from "@/shared/components/Badge";
 import { Button } from "@/shared/components/Button";
 import { extractApiErrorMessage } from "@/lib/api";
-import { formatBRL, formatData, hojeISO, addDiasISO } from "@/shared/utils/format";
+import { formatBRL, formatData, hojeISO, addDiasISO, primeiroDiaMesISO } from "@/shared/utils/format";
 import { StatusPagamento, STATUS_PAGAMENTO_LABELS, type ParcelaDTO } from "@/types/dtos";
-import { getParcelasAtrasadas, getParcelasPaged, getParcelasPorPeriodo } from "./api";
+import { getParcelasAtrasadas, getParcelasPaged, getParcelasPorPeriodo, getParcelasPagas } from "./api";
 import { DarBaixaModal } from "./DarBaixaModal";
 import { EditarParcelaModal } from "./EditarParcelaModal";
 
@@ -24,7 +24,23 @@ const TIPO_BADGE: Record<"APagar" | "AReceber", { label: string; variant: "good"
   AReceber: { label: "A Receber", variant: "good" },
 };
 
-type Aba = "todas" | "atrasadas" | "semana";
+type FiltroTipo = "" | "APagar" | "AReceber";
+
+const TIPO_FILTRO_OPCOES: { valor: FiltroTipo; label: string }[] = [
+  { valor: "", label: "Todos" },
+  { valor: "APagar", label: "A Pagar" },
+  { valor: "AReceber", label: "A Receber" },
+];
+
+// mesmas cores do badge da coluna Tipo (critical = a pagar, good = a receber),
+// só que sólidas aqui pra marcar qual filtro está ativo
+const TIPO_FILTRO_CLASSES: Record<FiltroTipo, string> = {
+  "": "bg-primary text-white",
+  APagar: "bg-critical text-white",
+  AReceber: "bg-good text-white",
+};
+
+type Aba = "todas" | "atrasadas" | "semana" | "historico";
 
 const hoje = hojeISO();
 const fimSemana = addDiasISO(hoje, 6);
@@ -38,12 +54,22 @@ export function ParcelasPage() {
   const [aba, setAba] = useState<Aba>("todas");
   const [pagina, setPagina] = useState(1);
   const [filtroStatus, setFiltroStatus] = useState<StatusPagamento | "">("");
+  const [filtroTipo, setFiltroTipo] = useState<FiltroTipo>("");
+  const [historicoInicio, setHistoricoInicio] = useState(primeiroDiaMesISO());
+  const [historicoFim, setHistoricoFim] = useState(hojeISO());
   const [parcelaEmBaixa, setParcelaEmBaixa] = useState<ParcelaDTO | null>(null);
   const [parcelaEmEdicao, setParcelaEmEdicao] = useState<ParcelaDTO | null>(null);
 
   const todasQuery = useQuery({
-    queryKey: ["parcelas", "todas", pagina, filtroStatus],
-    queryFn: () => getParcelasPaged(pagina, TAMANHO_PAGINA, filtroStatus === "" ? undefined : filtroStatus),
+    queryKey: ["parcelas", "todas", pagina, filtroStatus, filtroTipo],
+    queryFn: () =>
+      getParcelasPaged(
+        pagina,
+        TAMANHO_PAGINA,
+        filtroStatus === "" ? undefined : filtroStatus,
+        filtroTipo === "" ? undefined : filtroTipo,
+        true, // já pago sai daqui, mora só na aba Histórico
+      ),
     enabled: aba === "todas",
   });
 
@@ -55,28 +81,54 @@ export function ParcelasPage() {
 
   const semanaQuery = useQuery({
     queryKey: ["parcelas", "semana", hoje, fimSemana],
-    queryFn: () => getParcelasPorPeriodo(hoje, fimSemana),
+    queryFn: () => getParcelasPorPeriodo(hoje, fimSemana, true), // já pago sai daqui também
     enabled: aba === "semana",
   });
 
-  const isLoading =
-    aba === "todas" ? todasQuery.isLoading : aba === "atrasadas" ? atrasadasQuery.isLoading : semanaQuery.isLoading;
-  const isError = aba === "todas" ? todasQuery.isError : aba === "atrasadas" ? atrasadasQuery.isError : semanaQuery.isError;
-  const error = aba === "todas" ? todasQuery.error : aba === "atrasadas" ? atrasadasQuery.error : semanaQuery.error;
-  const itens: ParcelaDTO[] =
-    aba === "todas" ? (todasQuery.data?.items ?? []) : aba === "atrasadas" ? (atrasadasQuery.data ?? []) : (semanaQuery.data ?? []);
+  const historicoQuery = useQuery({
+    queryKey: ["parcelas", "historico", historicoInicio, historicoFim, filtroTipo],
+    queryFn: () => getParcelasPagas(historicoInicio, historicoFim, filtroTipo === "" ? undefined : filtroTipo),
+    enabled: aba === "historico",
+  });
+
+  const queryAtual =
+    aba === "todas" ? todasQuery : aba === "atrasadas" ? atrasadasQuery : aba === "semana" ? semanaQuery : historicoQuery;
+  const isLoading = queryAtual.isLoading;
+  const isError = queryAtual.isError;
+  const error = queryAtual.error;
+  // "todas" e "historico" já vem filtradas pelo backend (a primeira por causa da
+  // paginação, filtrar de novo bagunçaria a contagem; a segunda porque o filtro de
+  // Tipo já vai direto na query). "atrasadas"/"semana" trazem a lista inteira, então
+  // o filtro de Tipo nelas é só um .filter() local mesmo
+  const itensBrutos: ParcelaDTO[] =
+    aba === "todas"
+      ? (todasQuery.data?.items ?? [])
+      : aba === "atrasadas"
+        ? (atrasadasQuery.data ?? [])
+        : aba === "semana"
+          ? (semanaQuery.data ?? [])
+          : (historicoQuery.data ?? []);
+  const itens =
+    aba === "atrasadas" || aba === "semana"
+      ? itensBrutos.filter((p) => filtroTipo === "" || p.tipo === filtroTipo)
+      : itensBrutos;
   const paginacao = aba === "todas" ? todasQuery.data?.pagination : undefined;
 
   function mudarAba(novaAba: Aba) {
     setAba(novaAba);
   }
 
+  const sufixoTipo = filtroTipo === "APagar" ? " a pagar" : filtroTipo === "AReceber" ? " a receber" : "";
   const mensagemVazio =
     aba === "atrasadas"
-      ? "Nenhuma parcela atrasada — tudo em dia."
+      ? filtroTipo === ""
+        ? "Nenhuma parcela atrasada — tudo em dia."
+        : `Nenhuma parcela${sufixoTipo} atrasada.`
       : aba === "semana"
-        ? "Nenhuma parcela vencendo nos próximos 7 dias."
-        : "Nenhuma parcela cadastrada ainda.";
+        ? `Nenhuma parcela${sufixoTipo} vencendo nos próximos 7 dias.`
+        : aba === "historico"
+          ? `Nenhuma parcela${sufixoTipo} baixada nesse período.`
+          : `Nenhuma parcela${sufixoTipo} cadastrada ainda.`;
 
   return (
     <AppLayout title="Parcelas">
@@ -90,26 +142,74 @@ export function ParcelasPage() {
         <Button variant={aba === "semana" ? "primary" : "secondary"} size="sm" onClick={() => mudarAba("semana")}>
           Esta semana
         </Button>
+        <Button variant={aba === "historico" ? "primary" : "secondary"} size="sm" onClick={() => mudarAba("historico")}>
+          Histórico
+        </Button>
       </div>
 
-      {aba === "todas" && (
-        <div className="mb-4 flex items-center gap-2">
-          <label className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">Status</label>
-          <select
-            className="rounded-lg border border-border px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary/30"
-            value={filtroStatus}
-            onChange={(e) => {
-              setFiltroStatus(e.target.value === "" ? "" : (Number(e.target.value) as StatusPagamento));
-              setPagina(1);
-            }}
-          >
-            <option value="">Todos</option>
-            <option value={StatusPagamento.Pendente}>Pendente</option>
-            <option value={StatusPagamento.Pago}>Pago</option>
-            <option value={StatusPagamento.Atrasado}>Atrasado</option>
-          </select>
+      <div className="mb-4 flex flex-wrap items-center gap-4">
+        <div className="flex items-center gap-2">
+          <label className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">Tipo</label>
+          <div className="flex gap-1.5">
+            {TIPO_FILTRO_OPCOES.map((opcao) => (
+              <button
+                key={opcao.valor || "todos"}
+                type="button"
+                onClick={() => {
+                  setFiltroTipo(opcao.valor);
+                  setPagina(1);
+                }}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  filtroTipo === opcao.valor
+                    ? TIPO_FILTRO_CLASSES[opcao.valor]
+                    : "border border-border bg-surface-alt text-ink-secondary hover:bg-surface"
+                }`}
+              >
+                {opcao.label}
+              </button>
+            ))}
+          </div>
         </div>
-      )}
+
+        {aba === "todas" && (
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">Status</label>
+            <select
+              className="rounded-lg border border-border px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+              value={filtroStatus}
+              onChange={(e) => {
+                setFiltroStatus(e.target.value === "" ? "" : (Number(e.target.value) as StatusPagamento));
+                setPagina(1);
+              }}
+            >
+              <option value="">Todos</option>
+              <option value={StatusPagamento.Pendente}>Pendente</option>
+              <option value={StatusPagamento.Atrasado}>Atrasado</option>
+            </select>
+          </div>
+        )}
+
+        {aba === "historico" && (
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">Período</label>
+            <input
+              type="date"
+              className="rounded-lg border border-border px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+              value={historicoInicio}
+              max={historicoFim}
+              onChange={(e) => setHistoricoInicio(e.target.value)}
+            />
+            <span className="text-ink-secondary">até</span>
+            <input
+              type="date"
+              className="rounded-lg border border-border px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+              value={historicoFim}
+              min={historicoInicio}
+              onChange={(e) => setHistoricoFim(e.target.value)}
+            />
+          </div>
+        )}
+      </div>
 
       <Card>
         {isLoading && <p className="text-sm text-ink-secondary">Carregando…</p>}

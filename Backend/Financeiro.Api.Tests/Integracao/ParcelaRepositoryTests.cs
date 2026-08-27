@@ -255,5 +255,191 @@ namespace Financeiro.Api.Tests.Integracao
                 Assert.Equal(350m, total);
             }
         }
+
+        [Fact]
+        public async Task GetPagedComContraparteAsync_ComExcluirPagasTrue_NaoDeveRetornarParcelasPagas()
+        {
+            var nomeDoBanco = Guid.NewGuid().ToString();
+            var hoje = DateTime.Today;
+
+            using (var contexto = CriarContexto(nomeDoBanco, "usuario-A"))
+            {
+                contexto.ContasAPagar.Add(NovaContaAPagar(hoje, StatusPagamento.Pendente, valor: 100m));
+                contexto.ContasAPagar.Add(NovaContaAPagar(hoje, StatusPagamento.Pago, valor: 200m, dataPagamento: hoje));
+                await contexto.SaveChangesAsync();
+            }
+
+            using (var contexto = CriarContexto(nomeDoBanco, "usuario-A"))
+            {
+                var repositorio = new ParcelaRepository(contexto);
+                var resultado = await repositorio.GetPagedComContraparteAsync(1, 10, excluirPagas: true);
+
+                var parcela = Assert.Single(resultado);
+                Assert.Equal(StatusPagamento.Pendente, parcela.Status);
+            }
+        }
+
+        [Fact]
+        public async Task GetPagedComContraparteAsync_SemExcluirPagas_ContinuaRetornandoParcelasPagas()
+        {
+            // Regressão: o gráfico do Painel usa esse mesmo método sem passar excluirPagas
+            // (fica no padrão, false) porque precisa do que já foi pago pra montar a barra
+            // "Realizado" - esse teste trava se o padrão um dia mudar sem querer.
+            var nomeDoBanco = Guid.NewGuid().ToString();
+            var hoje = DateTime.Today;
+
+            using (var contexto = CriarContexto(nomeDoBanco, "usuario-A"))
+            {
+                contexto.ContasAPagar.Add(NovaContaAPagar(hoje, StatusPagamento.Pendente, valor: 100m));
+                contexto.ContasAPagar.Add(NovaContaAPagar(hoje, StatusPagamento.Pago, valor: 200m, dataPagamento: hoje));
+                await contexto.SaveChangesAsync();
+            }
+
+            using (var contexto = CriarContexto(nomeDoBanco, "usuario-A"))
+            {
+                var repositorio = new ParcelaRepository(contexto);
+                var resultado = await repositorio.GetPagedComContraparteAsync(1, 10);
+
+                Assert.Equal(2, resultado.Count);
+            }
+        }
+
+        [Fact]
+        public async Task GetPorPeriodoAsync_ComExcluirPagasTrue_NaoDeveRetornarParcelasPagas()
+        {
+            var nomeDoBanco = Guid.NewGuid().ToString();
+            var inicio = new DateTime(2026, 8, 1);
+            var fim = new DateTime(2026, 8, 31);
+
+            using (var contexto = CriarContexto(nomeDoBanco, "usuario-A"))
+            {
+                contexto.ContasAPagar.Add(NovaContaAPagar(new DateTime(2026, 8, 10), StatusPagamento.Pendente, valor: 100m));
+                contexto.ContasAPagar.Add(NovaContaAPagar(new DateTime(2026, 8, 15), StatusPagamento.Pago, valor: 200m, dataPagamento: new DateTime(2026, 8, 15)));
+                await contexto.SaveChangesAsync();
+            }
+
+            using (var contexto = CriarContexto(nomeDoBanco, "usuario-A"))
+            {
+                var repositorio = new ParcelaRepository(contexto);
+                var resultado = await repositorio.GetPorPeriodoAsync(inicio, fim, excluirPagas: true);
+
+                var parcela = Assert.Single(resultado);
+                Assert.Equal(StatusPagamento.Pendente, parcela.Status);
+            }
+        }
+
+        [Fact]
+        public async Task GetPorPeriodoAsync_SemExcluirPagas_ContinuaRetornandoParcelasPagas()
+        {
+            // Regressão: a lista "Vencendo em 14 dias" do Painel usa esse método sem passar
+            // excluirPagas - trava se o padrão um dia mudar sem querer.
+            var nomeDoBanco = Guid.NewGuid().ToString();
+            var inicio = new DateTime(2026, 8, 1);
+            var fim = new DateTime(2026, 8, 31);
+
+            using (var contexto = CriarContexto(nomeDoBanco, "usuario-A"))
+            {
+                contexto.ContasAPagar.Add(NovaContaAPagar(new DateTime(2026, 8, 10), StatusPagamento.Pendente, valor: 100m));
+                contexto.ContasAPagar.Add(NovaContaAPagar(new DateTime(2026, 8, 15), StatusPagamento.Pago, valor: 200m, dataPagamento: new DateTime(2026, 8, 15)));
+                await contexto.SaveChangesAsync();
+            }
+
+            using (var contexto = CriarContexto(nomeDoBanco, "usuario-A"))
+            {
+                var repositorio = new ParcelaRepository(contexto);
+                var resultado = (await repositorio.GetPorPeriodoAsync(inicio, fim)).ToList();
+
+                Assert.Equal(2, resultado.Count);
+            }
+        }
+
+        [Fact]
+        public async Task GetPagasPorPeriodoAsync_DeveRetornarSoParcelasPagasNoPeriodoPelaDataDePagamento()
+        {
+            var nomeDoBanco = Guid.NewGuid().ToString();
+            var inicio = new DateTime(2026, 8, 1);
+            var fim = new DateTime(2026, 8, 31);
+
+            using (var contexto = CriarContexto(nomeDoBanco, "usuario-A"))
+            {
+                // paga dentro do período -> entra
+                contexto.ContasAPagar.Add(NovaContaAPagar(new DateTime(2026, 7, 20), StatusPagamento.Pago, valor: 100m, dataPagamento: new DateTime(2026, 8, 5)));
+                // vence dentro do período, mas ainda não foi paga -> não entra (o filtro é por DataPagamento, não DataVencimento)
+                contexto.ContasAPagar.Add(NovaContaAPagar(new DateTime(2026, 8, 10), StatusPagamento.Pendente, valor: 999m));
+                // paga fora do período -> não entra
+                contexto.ContasAPagar.Add(NovaContaAPagar(new DateTime(2026, 6, 1), StatusPagamento.Pago, valor: 999m, dataPagamento: new DateTime(2026, 7, 1)));
+                await contexto.SaveChangesAsync();
+            }
+
+            using (var contexto = CriarContexto(nomeDoBanco, "usuario-A"))
+            {
+                var repositorio = new ParcelaRepository(contexto);
+                var resultado = await repositorio.GetPagasPorPeriodoAsync(inicio, fim);
+
+                var parcela = Assert.Single(resultado);
+                Assert.Equal(100m, parcela.Valor);
+            }
+        }
+
+        [Fact]
+        public async Task GetPagasPorPeriodoAsync_ComTipo_DeveFiltrarSoAPagarOuSoAReceber()
+        {
+            var nomeDoBanco = Guid.NewGuid().ToString();
+            var inicio = new DateTime(2026, 8, 1);
+            var fim = new DateTime(2026, 8, 31);
+
+            using (var contexto = CriarContexto(nomeDoBanco, "usuario-A"))
+            {
+                contexto.ContasAPagar.Add(NovaContaAPagar(new DateTime(2026, 8, 1), StatusPagamento.Pago, valor: 100m, dataPagamento: new DateTime(2026, 8, 10)));
+                contexto.ContasAReceber.Add(NovaContaAReceber(new DateTime(2026, 8, 1), StatusPagamento.Pago, valor: 200m, dataPagamento: new DateTime(2026, 8, 10)));
+                await contexto.SaveChangesAsync();
+            }
+
+            using (var contexto = CriarContexto(nomeDoBanco, "usuario-A"))
+            {
+                var repositorio = new ParcelaRepository(contexto);
+                var soAPagar = await repositorio.GetPagasPorPeriodoAsync(inicio, fim, "APagar");
+                var soAReceber = await repositorio.GetPagasPorPeriodoAsync(inicio, fim, "AReceber");
+
+                Assert.Equal(100m, Assert.Single(soAPagar).Valor);
+                Assert.Equal(200m, Assert.Single(soAReceber).Valor);
+            }
+        }
+
+        [Fact]
+        public async Task GetPagasPorPeriodoAsync_DeveTrazerTipoENomeContraparte()
+        {
+            // usa a mesma query "ComContraparte" das outras listagens, então tem que vir
+            // com Fornecedor/Cliente incluído igual às outras abas da tela de Parcelas
+            var nomeDoBanco = Guid.NewGuid().ToString();
+            var inicio = new DateTime(2026, 8, 1);
+            var fim = new DateTime(2026, 8, 31);
+
+            using (var contexto = CriarContexto(nomeDoBanco, "usuario-A"))
+            {
+                var conta = new ContaAReceber { ValorTotal = 150m, Cliente = new Cliente { Nome = "Cliente X" } };
+                var parcela = new Parcela
+                {
+                    Valor = 150m,
+                    DataVencimento = new DateTime(2026, 8, 1),
+                    DataPagamento = new DateTime(2026, 8, 10),
+                    Status = StatusPagamento.Pago,
+                    DocumentoFinanceiro = conta,
+                };
+                conta.Parcelas.Add(parcela);
+                contexto.ContasAReceber.Add(conta);
+                await contexto.SaveChangesAsync();
+            }
+
+            using (var contexto = CriarContexto(nomeDoBanco, "usuario-A"))
+            {
+                var repositorio = new ParcelaRepository(contexto);
+                var resultado = await repositorio.GetPagasPorPeriodoAsync(inicio, fim);
+
+                var parcela = Assert.Single(resultado);
+                Assert.True(parcela.DocumentoFinanceiro is ContaAReceber);
+                Assert.Equal("Cliente X", ((ContaAReceber)parcela.DocumentoFinanceiro).Cliente.Nome);
+            }
+        }
     }
 }
