@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppLayout } from "@/app/layout/AppLayout";
 import { Card } from "@/shared/components/Card";
@@ -16,6 +17,7 @@ const TAMANHO_PAGINA = 10;
 // só lista + exclui a conta inteira (criar é na tela Lançar Conta; corrigir
 // uma parcela isolada é na tela de Parcelas — excluir aqui já derruba tudo via cascade)
 export function ContasAPagarPage() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [pagina, setPagina] = useState(1);
   const [filtroCategoria, setFiltroCategoria] = useState<CategoriaGasto | "">("");
@@ -50,6 +52,12 @@ export function ContasAPagarPage() {
 
   return (
     <AppLayout title="Contas a Pagar">
+      <div className="mb-5 flex justify-end">
+        <Button onClick={() => navigate("/lancar-conta", { state: { tipoInicial: "pagar" } })}>
+          + Nova Conta
+        </Button>
+      </div>
+
       <div className="mb-4 flex items-center gap-2">
         <label className="text-xs font-semibold uppercase tracking-wide text-ink-secondary">Categoria</label>
         <select

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppLayout } from "@/app/layout/AppLayout";
 import { Card } from "@/shared/components/Card";
@@ -14,6 +15,7 @@ const TAMANHO_PAGINA = 10;
 
 // mesmo escopo da tela de Contas a Pagar: só listar + excluir a conta inteira
 export function ContasAReceberPage() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [pagina, setPagina] = useState(1);
   const [contaParaExcluir, setContaParaExcluir] = useState<ContaAReceberDTO | null>(null);
@@ -46,6 +48,12 @@ export function ContasAReceberPage() {
 
   return (
     <AppLayout title="Contas a Receber">
+      <div className="mb-5 flex justify-end">
+        <Button onClick={() => navigate("/lancar-conta", { state: { tipoInicial: "receber" } })}>
+          + Nova Conta
+        </Button>
+      </div>
+
       <Card>
         {query.isLoading && <p className="text-sm text-ink-secondary">Carregando…</p>}
         {query.isError && (

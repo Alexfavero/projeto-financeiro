@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -32,7 +32,13 @@ import {
 // confirmar se a soma bater com o total. Depois ainda dá pra ajustar manual
 // na tabela antes de salvar.
 export function LancarContaPage() {
-  const [tab, setTab] = useState<"pagar" | "receber">("pagar");
+  // chegando daqui pelo botão "+ Nova Conta" de Contas a Pagar/Receber, já
+  // abre na aba certa (ver navigate(..., { state: { tipoInicial } }) nessas
+  // telas); chegando pelo menu lateral ou pelo atalho do Painel, não vem
+  // nada em location.state e cai no padrão de sempre ("pagar")
+  const location = useLocation();
+  const tipoInicial = (location.state as { tipoInicial?: "pagar" | "receber" } | null)?.tipoInicial;
+  const [tab, setTab] = useState<"pagar" | "receber">(tipoInicial ?? "pagar");
 
   return (
     <AppLayout title="Nova Conta">
