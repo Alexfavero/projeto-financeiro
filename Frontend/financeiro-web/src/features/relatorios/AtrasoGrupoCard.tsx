@@ -18,13 +18,16 @@ export function AtrasoGrupoCard({ titulo, valorTotalAtrasado, parcelas }: Atraso
         <Badge variant="critical">{formatBRL(valorTotalAtrasado)} em atraso</Badge>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[560px] text-sm">
+        {/* table-fixed: mesmo motivo do ExtratoTab — sem isso, cada card calcula a largura
+            das colunas sozinho a partir do próprio conteúdo, e os valores de "Dias em
+            atraso" variam bastante de card pra card, desalinhando as colunas entre eles. */}
+        <table className="w-full min-w-[560px] table-fixed text-sm">
         <thead>
           <tr className="border-b border-border text-left text-[11px] uppercase tracking-wide text-ink-secondary">
-            <th className="pb-2">Documento</th>
-            <th className="pb-2">Valor</th>
-            <th className="pb-2">Vencimento</th>
-            <th className="pb-2">Dias em atraso</th>
+            <th className="w-1/4 pb-2">Documento</th>
+            <th className="w-1/4 pb-2">Valor</th>
+            <th className="w-1/4 pb-2">Vencimento</th>
+            <th className="w-1/4 pb-2">Dias em atraso</th>
           </tr>
         </thead>
         <tbody>

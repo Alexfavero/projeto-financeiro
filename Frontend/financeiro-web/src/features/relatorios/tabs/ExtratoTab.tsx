@@ -118,13 +118,19 @@ export function ExtratoTab() {
                 Documento #{doc.documentoFinanceiroId} — {formatBRL(doc.valorTotal)}
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[560px] text-sm">
+                {/* table-fixed: sem isso, cada documento tem sua própria tabela calculando a
+                    largura das colunas sozinha a partir do próprio conteúdo — "Pago" é mais
+                    estreito que "Pendente"/"Atrasado", "15/06/2026" é mais largo que "—", então
+                    colunas iguais (Valor/Vencimento/Status) ficavam em posições X diferentes
+                    entre um documento e outro. table-fixed distribui as colunas em partes
+                    iguais sempre, independente do conteúdo de cada linha. */}
+                <table className="w-full min-w-[560px] table-fixed text-sm">
                 <thead>
                   <tr className="border-b border-border text-left text-[11px] uppercase tracking-wide text-ink-secondary">
-                    <th className="pb-2">Valor</th>
-                    <th className="pb-2">Vencimento</th>
-                    <th className="pb-2">Pagamento</th>
-                    <th className="pb-2">Status</th>
+                    <th className="w-1/4 pb-2">Valor</th>
+                    <th className="w-1/4 pb-2">Vencimento</th>
+                    <th className="w-1/4 pb-2">Pagamento</th>
+                    <th className="w-1/4 pb-2">Status</th>
                   </tr>
                 </thead>
                 <tbody>
