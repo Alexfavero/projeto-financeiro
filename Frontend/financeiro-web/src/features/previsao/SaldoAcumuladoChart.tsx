@@ -82,6 +82,33 @@ function ultimosAnos(qtd: number): string[] {
   return Array.from({ length: qtd }, (_, i) => String(anoAtual - (qtd - 1 - i)));
 }
 
+// como ultimosMeses, mas também estende a lista pra frente até o último mês
+// que tiver alguma parcela lançada (previsto ou realizado) — sem isso o
+// seletor nunca deixava escolher um mês futuro, mesmo tendo parcela prevista
+// lá na frente (ex: previsão lançada com bastante antecedência)
+function mesesComFuturo(parcelas: ParcelaDTO[], qtdPassado: number): string[] {
+  const passado = ultimosMeses(qtdPassado);
+  if (parcelas.length === 0) return passado;
+
+  const mesAtualChave = passado[passado.length - 1]; // "yyyy-MM", sempre o mês corrente
+  const maiorChave = parcelas.reduce((max, p) => {
+    const chave = chaveMes(p.status === StatusPagamento.Pago && p.dataPagamento ? p.dataPagamento : p.dataVencimento);
+    return chave > max ? chave : max;
+  }, mesAtualChave);
+
+  if (maiorChave <= mesAtualChave) return passado;
+
+  const [anoAtual, mesAtual] = mesAtualChave.split("-").map(Number);
+  const [anoMax, mesMax] = maiorChave.split("-").map(Number);
+  const totalExtras = (anoMax - anoAtual) * 12 + (mesMax - mesAtual);
+  const futuros = Array.from({ length: totalExtras }, (_, i) => {
+    const d = new Date(anoAtual, mesAtual - 1 + i + 1, 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  });
+
+  return [...passado, ...futuros];
+}
+
 // dia 0 do mês seguinte = último dia do mês atual (truque do Date do JS)
 function diasNoMes(anoMes: string): number {
   const [ano, mes] = anoMes.split("-").map(Number);
@@ -193,7 +220,10 @@ export function SaldoAcumuladoChart() {
 
   const query = useQuery({ queryKey: ["parcelas-todas-grafico"], queryFn: getTodasParcelasParaGrafico });
 
-  const mesesParaSelecao = useMemo(() => [...ultimosMeses(12)].reverse(), []);
+  const mesesParaSelecao = useMemo(
+    () => [...mesesComFuturo(query.data ?? [], 12)].reverse(),
+    [query.data],
+  );
   const anosParaSelecao = useMemo(() => [...ultimosAnos(5)].reverse(), []);
 
   const pontos = useMemo(() => {
