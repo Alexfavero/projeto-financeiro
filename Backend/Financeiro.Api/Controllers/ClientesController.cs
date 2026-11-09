@@ -99,6 +99,19 @@ namespace Financeiro.Api.Controllers
                 return NotFound("Cliente não encontrado");
             }
 
+            // ClienteId é obrigatório em ContaAReceber (FK com cascade no modelo) — sem essa
+            // checagem, excluir um cliente apagaria em cascata todas as contas a receber dele,
+            // inclusive as já pagas. Bloqueia e orienta o usuário em vez de deixar isso acontecer.
+            var possuiContaAReceber = await _uof.ContaAReceberRepository.GetAsync(c => c.ClienteId == id);
+            if (possuiContaAReceber != null)
+            {
+                return Conflict(new Response
+                {
+                    Status = "Error",
+                    Message = "Não é possível excluir: este cliente possui contas a receber lançadas. Exclua ou reatribua essas contas antes de excluir o cliente."
+                });
+            }
+
             _uof.ClienteRepository.Delete(cliente);
             await _uof.CommitAsync();
 

@@ -5,6 +5,7 @@ import { Card } from "@/shared/components/Card";
 import { Button } from "@/shared/components/Button";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 import { extractApiErrorMessage } from "@/lib/api";
+import { useToast } from "@/shared/toast/ToastProvider";
 import type { ClienteDTO } from "@/types/dtos";
 import { deleteCliente, getClientesPaged } from "./api";
 import { ClienteFormModal } from "./ClienteFormModal";
@@ -13,6 +14,7 @@ const TAMANHO_PAGINA = 10;
 
 export function ClientesPage() {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [pagina, setPagina] = useState(1);
   const [modalAberto, setModalAberto] = useState(false);
   const [clienteEmEdicao, setClienteEmEdicao] = useState<ClienteDTO | null>(null);
@@ -28,6 +30,10 @@ export function ClientesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clientes"] });
       setClienteParaExcluir(null);
+    },
+    onError: (error) => {
+      // ex.: cliente com contas a receber lançadas — a API bloqueia e explica por quê
+      toast.error(extractApiErrorMessage(error, "Não foi possível excluir o cliente."));
     },
   });
 

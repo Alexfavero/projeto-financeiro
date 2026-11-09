@@ -7,9 +7,10 @@ import { Button } from "@/shared/components/Button";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 import { extractApiErrorMessage } from "@/lib/api";
 import { formatBRL, formatData } from "@/shared/utils/format";
-import type { ContaAReceberDTO } from "@/types/dtos";
+import { useToast } from "@/shared/toast/ToastProvider";
+import { StatusPagamento, type ContaAReceberDTO } from "@/types/dtos";
 import { listClientes } from "@/features/clientes/api";
-import { deleteContaAReceber, getContasAReceberPaged } from "./api";
+import { deleteContaAReceber, getContaAReceberById, getContasAReceberPaged } from "./api";
 
 const TAMANHO_PAGINA = 10;
 
@@ -17,8 +18,13 @@ const TAMANHO_PAGINA = 10;
 export function ContasAReceberPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [pagina, setPagina] = useState(1);
   const [contaParaExcluir, setContaParaExcluir] = useState<ContaAReceberDTO | null>(null);
+  // datas de vencimento das parcelas já pagas dessa conta — preenchido ao clicar em
+  // "Excluir" (a listagem paginada não traz as parcelas, só o Get por id)
+  const [parcelasPagasVencimentos, setParcelasPagasVencimentos] = useState<string[]>([]);
+  const [verificandoExclusao, setVerificandoExclusao] = useState(false);
 
   const query = useQuery({
     queryKey: ["contas-a-receber", pagina],
@@ -40,11 +46,43 @@ export function ContasAReceberPage() {
       queryClient.invalidateQueries({ queryKey: ["parcelas-periodo"] });
       queryClient.invalidateQueries({ queryKey: ["previsao"] });
       setContaParaExcluir(null);
+      setParcelasPagasVencimentos([]);
+    },
+    onError: (error) => {
+      toast.error(extractApiErrorMessage(error, "Não foi possível excluir a conta."));
     },
   });
 
+  // busca a conta completa (com parcelas) antes de abrir a confirmação, pra avisar se
+  // alguma parcela já foi paga — excluir apaga a conta inteira, pagas inclusive
+  async function solicitarExclusao(conta: ContaAReceberDTO) {
+    setVerificandoExclusao(true);
+    try {
+      const completa = await getContaAReceberById(conta.documentoFinanceiroId);
+      const vencimentosPagas = completa.parcelas
+        .filter((p) => p.status === StatusPagamento.Pago)
+        .sort((a, b) => a.dataVencimento.localeCompare(b.dataVencimento))
+        .map((p) => formatData(p.dataVencimento));
+      setParcelasPagasVencimentos(vencimentosPagas);
+      setContaParaExcluir(conta);
+    } catch (error) {
+      toast.error(extractApiErrorMessage(error, "Não foi possível verificar as parcelas dessa conta."));
+    } finally {
+      setVerificandoExclusao(false);
+    }
+  }
+
+  function cancelarExclusao() {
+    setContaParaExcluir(null);
+    setParcelasPagasVencimentos([]);
+  }
+
   const itens = query.data?.items ?? [];
   const paginacao = query.data?.pagination;
+  const mensagemExclusao =
+    parcelasPagasVencimentos.length > 0
+      ? `Atenção: ${parcelasPagasVencimentos.length === 1 ? "1 parcela dessa conta já está paga" : `${parcelasPagasVencimentos.length} parcelas dessa conta já estão pagas`} (vencimento em ${parcelasPagasVencimentos.join(", ")}). Excluir remove TODAS as parcelas, inclusive as já pagas, e essa ação não pode ser desfeita. Deseja continuar mesmo assim?`
+      : "Tem certeza que deseja excluir esta conta? Todas as parcelas dela serão excluídas junto. Essa ação não pode ser desfeita.";
 
   return (
     <AppLayout title="Contas a Receber">
@@ -85,8 +123,9 @@ export function ContasAReceberPage() {
                   <td className="py-2.5 text-right">
                     <button
                       type="button"
-                      className="text-xs font-semibold text-critical"
-                      onClick={() => setContaParaExcluir(conta)}
+                      className="text-xs font-semibold text-critical disabled:opacity-50"
+                      disabled={verificandoExclusao}
+                      onClick={() => solicitarExclusao(conta)}
                     >
                       Excluir
                     </button>
@@ -118,10 +157,10 @@ export function ContasAReceberPage() {
       <ConfirmDialog
         open={!!contaParaExcluir}
         title="Excluir conta a receber"
-        message="Tem certeza que deseja excluir esta conta? Todas as parcelas dela serão excluídas junto. Essa ação não pode ser desfeita."
+        message={mensagemExclusao}
         confirmLabel="Excluir"
         loading={deleteMutation.isPending}
-        onCancel={() => setContaParaExcluir(null)}
+        onCancel={cancelarExclusao}
         onConfirm={() => contaParaExcluir && deleteMutation.mutate(contaParaExcluir.documentoFinanceiroId)}
       />
     </AppLayout>

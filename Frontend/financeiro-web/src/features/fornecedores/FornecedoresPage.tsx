@@ -5,6 +5,7 @@ import { Card } from "@/shared/components/Card";
 import { Button } from "@/shared/components/Button";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
 import { extractApiErrorMessage } from "@/lib/api";
+import { useToast } from "@/shared/toast/ToastProvider";
 import type { FornecedorDTO } from "@/types/dtos";
 import { deleteFornecedor, getFornecedoresPaged } from "./api";
 import { FornecedorFormModal } from "./FornecedorFormModal";
@@ -13,6 +14,7 @@ const TAMANHO_PAGINA = 10;
 
 export function FornecedoresPage() {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [pagina, setPagina] = useState(1);
   const [modalAberto, setModalAberto] = useState(false);
   const [fornecedorEmEdicao, setFornecedorEmEdicao] = useState<FornecedorDTO | null>(null);
@@ -28,6 +30,10 @@ export function FornecedoresPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["fornecedores"] });
       setFornecedorParaExcluir(null);
+    },
+    onError: (error) => {
+      // ex.: fornecedor com contas a pagar lançadas — a API bloqueia e explica por quê
+      toast.error(extractApiErrorMessage(error, "Não foi possível excluir o fornecedor."));
     },
   });
 

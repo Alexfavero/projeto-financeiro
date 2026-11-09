@@ -5,6 +5,7 @@ import { Button } from "@/shared/components/Button";
 import { Input } from "@/shared/components/Input";
 import { extractApiErrorMessage } from "@/lib/api";
 import { formatBRL, hojeISO } from "@/shared/utils/format";
+import { useToast } from "@/shared/toast/ToastProvider";
 import type { ParcelaDTO } from "@/types/dtos";
 import { darBaixa } from "./api";
 
@@ -18,6 +19,7 @@ export function DarBaixaModal({
   parcela: ParcelaDTO | null;
 }) {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [dataPagamento, setDataPagamento] = useState(hojeISO());
 
   // reseta pra "hoje" toda vez que abre, senão fica com a data da baixa anterior
@@ -32,7 +34,13 @@ export function DarBaixaModal({
       queryClient.invalidateQueries({ queryKey: ["parcelas"] });
       queryClient.invalidateQueries({ queryKey: ["parcelas-periodo"] });
       queryClient.invalidateQueries({ queryKey: ["previsao"] });
+      // na aba "Todas" a parcela some da lista assim que é paga — sem esse aviso
+      // o sucesso parece "não aconteceu nada"
+      toast.success("Pagamento registrado com sucesso.");
       onClose();
+    },
+    onError: (error) => {
+      toast.error(extractApiErrorMessage(error, "Não foi possível dar baixa na parcela."));
     },
   });
 

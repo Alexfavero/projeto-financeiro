@@ -5,6 +5,7 @@ import "./index.css";
 import App from "./App.tsx";
 import { queryClient } from "@/lib/queryClient";
 import { ThemeProvider } from "@/shared/theme/ThemeContext";
+import { ToastProvider } from "@/shared/toast/ToastProvider";
 
 // intercepta as chamadas do Axios no nível do navegador, então o resto do
 // app nem sabe se tá falando com o MSW ou com a API real.
@@ -23,9 +24,11 @@ enableMocking().then(() => {
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
       <ThemeProvider>
-        <QueryClientProvider client={queryClient}>
-          <App />
-        </QueryClientProvider>
+        <ToastProvider>
+          <QueryClientProvider client={queryClient}>
+            <App />
+          </QueryClientProvider>
+        </ToastProvider>
       </ThemeProvider>
     </StrictMode>,
   );

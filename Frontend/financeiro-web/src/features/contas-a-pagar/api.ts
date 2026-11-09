@@ -35,6 +35,13 @@ export async function getContasAPagarPaged(
   return { items: response.data, pagination: lerPaginacao(response.headers["x-pagination"]) };
 }
 
+// a listagem paginada não traz as parcelas (só o Get por id inclui) — usado antes de
+// excluir, pra avisar se alguma parcela já está paga
+export async function getContaAPagarById(id: number): Promise<ContaAPagarDTO> {
+  const { data } = await api.get<ContaAPagarDTO>(`/ContasAPagar/${id}`);
+  return data;
+}
+
 // exclui a conta inteira, não uma parcela avulsa — backend tem ON DELETE CASCADE
 // entre Parcela e DocumentoFinanceiro, as parcelas somem junto
 export async function deleteContaAPagar(id: number): Promise<void> {

@@ -129,6 +129,20 @@ namespace Financeiro.Api.Controllers
                 return NotFound("Fornecedor não encontrado");
             }
 
+            // FornecedorId é opcional em ContaAPagar, então o banco não bloqueia isso sozinho
+            // (a FK deixaria o campo nulo). Mas silenciosamente "desvincular" contas já lançadas
+            // de um fornecedor que o usuário está excluindo não é um bom comportamento — melhor
+            // avisar e deixar o usuário decidir.
+            var possuiContaAPagar = await _uof.ContaAPagarRepository.GetAsync(c => c.FornecedorId == id);
+            if (possuiContaAPagar != null)
+            {
+                return Conflict(new Response
+                {
+                    Status = "Error",
+                    Message = "Não é possível excluir: este fornecedor possui contas a pagar lançadas. Exclua ou reatribua essas contas antes de excluir o fornecedor."
+                });
+            }
+
             _uof.FornecedorRepository.Delete(fornecedor);
             await _uof.CommitAsync();
 
