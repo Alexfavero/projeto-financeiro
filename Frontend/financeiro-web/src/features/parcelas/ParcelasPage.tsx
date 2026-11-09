@@ -184,7 +184,6 @@ export function ParcelasPage() {
             >
               <option value="">Todos</option>
               <option value={StatusPagamento.Pendente}>Pendente</option>
-              <option value={StatusPagamento.Atrasado}>Atrasado</option>
             </select>
           </div>
         )}
